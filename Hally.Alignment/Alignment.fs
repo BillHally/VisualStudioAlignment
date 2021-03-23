@@ -15,47 +15,45 @@ let getLengthOfIndent (x : string) : int =
 
     loop 0
 
-let unalign (c : char) (x : string) : string =
+[<CompiledName("Unalign")>]
+let unalign (x : string) : string =
     let lines = x.Split('\n')
 
     let sb = StringBuilder()
 
     for i in 0..(lines.Length - 1) do
         let line = lines.[i]
-        let n = line.IndexOf c
-        if n = -1 then
-            sb.Append(line) |> ignore
-        else
-            let m = getLengthOfIndent line
-            sb.Append(line.Substring(0, m)) |> ignore
-            let mutable previousCharWasWhiteSpace = false
-            for i in m..(n - 1) do
-                let ch = line.[i]
-                if Char.IsWhiteSpace(ch) then
-                    if not previousCharWasWhiteSpace then
-                        previousCharWasWhiteSpace <- true
-                        sb.Append(ch) |> ignore
-                else
-                    previousCharWasWhiteSpace <- false
-                    sb.Append(ch) |> ignore
 
-            sb.Append(line.Substring(n)) |> ignore
+        let m = getLengthOfIndent line
+        sb.Append(line.Substring(0, m)) |> ignore
+
+        let mutable previousCharWasWhiteSpace = false
+        for ch in line.[m..^0] do
+            match ch with
+            | ' '
+            | '\t' ->
+                if not previousCharWasWhiteSpace then
+                    previousCharWasWhiteSpace <- true
+                    sb.Append(ch) |> ignore
+            | _ ->
+                previousCharWasWhiteSpace <- false
+                sb.Append(ch) |> ignore
 
         if i < lines.Length - 1 then
             sb.Append('\n') |> ignore
 
     sb.ToString()
 
-let getMaxFirstIndex (c : char) (xs : string[]) : int =
-    xs |> Array.fold (fun n x -> max n (x.IndexOf c)) -1
+let getMaxFirstIndex (s : string) (xs : string[]) : int =
+    xs |> Array.fold (fun n x -> max n (x.IndexOf(s))) -1
 
-let align (c : char) (x : string) : string =
+let align (s : string) (x : string) : string =
     let lines = x.Split('\n')
 
     if lines.Length < 2 then
         x
     else
-        let maxIndex = getMaxFirstIndex c lines
+        let maxIndex = getMaxFirstIndex s lines
         if maxIndex = -1 then
             x
         else
@@ -63,7 +61,7 @@ let align (c : char) (x : string) : string =
 
             for i in 0..(lines.Length - 1) do
                 let line = lines.[i]
-                let n = line.IndexOf(c)
+                let n = line.IndexOf(s)
                 if n = -1 then
                     sb.Append(line) |> ignore
                 else
@@ -80,15 +78,15 @@ let align (c : char) (x : string) : string =
             sb.ToString()
 
 [<CompiledName("Realign")>]
-let realign (c : char) (x : string) =
+let realign (s : string) (x : string) =
     x
-    |> unalign c
-    |> align   c
+    |> unalign
+    |> align s
 
 [<CompiledName("RealignAll")>]
-let realignAll (x : string) =
+let realignAll (x : string) : string =
+    let all = [| "with member"; ":"; "=" |]
+
     x
-    |> unalign ':'
-    |> unalign '='
-    |> align   ':'
-    |> align   '='
+    |> unalign
+    |> (fun x -> all |> Array.fold (fun acc s -> align s acc) x)
