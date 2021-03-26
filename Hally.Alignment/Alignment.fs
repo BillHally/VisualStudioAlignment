@@ -44,8 +44,37 @@ let unalign (x : string) : string =
 
     sb.ToString()
 
-let getMaxFirstIndex (s : string) (xs : string[]) : int =
-    xs |> Array.fold (fun n x -> max n (x.IndexOf(s))) -1
+let getMaxNextIndex (startIndex : int) (s : string) (xs : string[]) : int =
+    xs |> Array.fold (fun n x -> max n (if startIndex >= x.Length then -1 else x.IndexOf(s, startIndex))) -1
+
+let rec private alignFrom (startIndex : int) (s : string) (lines : string[]) : unit =
+    let maxIndex = getMaxNextIndex startIndex s lines
+    if maxIndex = -1 then
+        ()
+    else
+        let sb = StringBuilder()
+
+        for i in 0..(lines.Length - 1) do
+            let line = lines.[i]
+            if startIndex < line.Length then
+                let n = line.IndexOf(s, startIndex)
+
+                // Leave the current line unchanged if it either doesn't contain s, or it contains it at the max index
+                if n <> -1 && n <> maxIndex then
+                    // Add the line from the start index to the the character before n
+                    sb.Append(line.Substring(0, n)) |> ignore
+
+                    // Pad the difference between the actual index for this line and the max index
+                    sb.Append(' ', maxIndex - n) |> ignore
+
+                    // Add the rest of the line
+                    sb.Append(line.Substring(n)) |> ignore
+
+                    // Update the line, and reset the builder
+                    lines.[i] <- sb.ToString()
+                    sb.Clear() |> ignore
+
+        alignFrom (maxIndex + 1) s lines
 
 let align (s : string) (x : string) : string =
     let lines = x.Split('\n')
@@ -53,29 +82,8 @@ let align (s : string) (x : string) : string =
     if lines.Length < 2 then
         x
     else
-        let maxIndex = getMaxFirstIndex s lines
-        if maxIndex = -1 then
-            x
-        else
-            let sb = StringBuilder()
-
-            for i in 0..(lines.Length - 1) do
-                let line = lines.[i]
-                let n = line.IndexOf(s)
-                if n = -1 then
-                    sb.Append(line) |> ignore
-                else
-                    sb.Append(line.Substring(0, n - 1)) |> ignore
-
-                    for _ in n..maxIndex do
-                        sb.Append(' ') |> ignore
-
-                    sb.Append(line.Substring(n)) |> ignore
-
-                if i < lines.Length - 1 then
-                    sb.Append('\n') |> ignore
-
-            sb.ToString()
+        alignFrom 0 s lines
+        String.Join("\n", lines)
 
 [<CompiledName("Realign")>]
 let realign (s : string) (x : string) =
@@ -85,7 +93,7 @@ let realign (s : string) (x : string) =
 
 [<CompiledName("RealignAll")>]
 let realignAll (x : string) : string =
-    let all = [| "with member"; ":"; "=" |]
+    let all = [| "with member"; ":"; "="; "," |]
 
     x
     |> unalign

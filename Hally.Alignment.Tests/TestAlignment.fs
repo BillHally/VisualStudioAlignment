@@ -71,18 +71,31 @@ module AlignmentByEqualsRequired =
 
     let a  = 4"""
 
-[<TestCase(NoAlignmentRequired.Empty                  , NoAlignmentRequired.Empty                  )>]
-[<TestCase(NoAlignmentRequired.OneLine                , NoAlignmentRequired.OneLine                )>]
-[<TestCase(NoAlignmentRequired.WhiteSpaceOnly         , NoAlignmentRequired.WhiteSpaceOnly         )>]
-[<TestCase(AlignmentByEqualsRequired.NotContainingChar, AlignmentByEqualsRequired.NotContainingChar)>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned00      , AlignmentByEqualsRequired.Aligned00        )>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned01      , AlignmentByEqualsRequired.Aligned01        )>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned02      , AlignmentByEqualsRequired.Aligned02        )>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned03      , AlignmentByEqualsRequired.Aligned03        )>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned04      , AlignmentByEqualsRequired.Aligned04        )>]
-let ``Alignment.align, when passed "=", aligns the lines it is passed at that the first occurrence of that character`` (before : string) (after : string) =
+[<RequireQualifiedAccess>]
+module AlignmentByCommaRequired =
+    let [<Literal>] Unaligned00 = """
+    a, bc, def
+    ghi, jklm, nop, q
+"""
+
+    let [<Literal>] Aligned00 = """
+    a  , bc  , def
+    ghi, jklm, nop, q
+"""
+
+[<TestCase(NoAlignmentRequired.Empty                  , "=", NoAlignmentRequired.Empty                  )>]
+[<TestCase(NoAlignmentRequired.OneLine                , "=", NoAlignmentRequired.OneLine                )>]
+[<TestCase(NoAlignmentRequired.WhiteSpaceOnly         , "=", NoAlignmentRequired.WhiteSpaceOnly         )>]
+[<TestCase(AlignmentByEqualsRequired.NotContainingChar, "=", AlignmentByEqualsRequired.NotContainingChar)>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned00      , "=", AlignmentByEqualsRequired.Aligned00        )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned01      , "=", AlignmentByEqualsRequired.Aligned01        )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned02      , "=", AlignmentByEqualsRequired.Aligned02        )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned03      , "=", AlignmentByEqualsRequired.Aligned03        )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned04      , "=", AlignmentByEqualsRequired.Aligned04        )>]
+[<TestCase(AlignmentByCommaRequired.Unaligned00       , ",", AlignmentByCommaRequired.Aligned00         )>]
+let ``Alignment.align, when passed a substring, aligns the lines it is passed at every occurrence of that substring`` (before : string) (substring : string) (after : string) =
     before
-    |> Alignment.align "="
+    |> Alignment.align substring
     |> shouldEqual after
 
 [<TestCase(NoAlignmentRequired.Empty                  , NoAlignmentRequired.Empty                  )>]
@@ -94,19 +107,21 @@ let ``Alignment.align, when passed "=", aligns the lines it is passed at that th
 [<TestCase(AlignmentByEqualsRequired.Aligned02        , AlignmentByEqualsRequired.Unaligned02      )>]
 [<TestCase(AlignmentByEqualsRequired.Aligned03        , AlignmentByEqualsRequired.Unaligned03      )>]
 [<TestCase(AlignmentByEqualsRequired.Aligned04        , AlignmentByEqualsRequired.Unaligned04      )>]
-let ``Alignment.unalign, unaligns the lines it is passed at that the first occurrence of that character`` (before : string) (after : string) =
+let ``Alignment.unalign, unaligns the lines it is passed from after the indent to the end of the line`` (before : string) (after : string) =
     before
     |> Alignment.unalign
     |> shouldEqual after
 
-[<TestCase(NoAlignmentRequired.Empty                  , -1)>]
-[<TestCase(NoAlignmentRequired.OneLine                , 10)>]
-[<TestCase(AlignmentByEqualsRequired.NotContainingChar, -1)>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned00      , 11)>]
-let ``getMaxFirstIndex always returns the expected index`` (x : string) (n : int) =
+[<TestCase(NoAlignmentRequired.Empty                  , 0, "=", -1)>]
+[<TestCase(NoAlignmentRequired.OneLine                , 0, "=", 10)>]
+[<TestCase(AlignmentByEqualsRequired.NotContainingChar, 0, "=", -1)>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned00      , 0, "=", 11)>]
+[<TestCase(AlignmentByCommaRequired.Unaligned00       , 0, ",",  7)>]
+[<TestCase(AlignmentByCommaRequired.Unaligned00       , 8, ",", 13)>]
+let ``getMaxFirstIndex always returns the expected index`` (x : string) (startIndex : int) (alignBy : string) (expected : int) =
     x.Split('\n')
-    |> Alignment.getMaxFirstIndex "="
-    |> shouldEqual n
+    |> Alignment.getMaxNextIndex startIndex alignBy
+    |> shouldEqual expected
 
 [<RequireQualifiedAccess>]
 module ComplexAlignmentRequired =
@@ -115,7 +130,7 @@ module ComplexAlignmentRequired =
 
     let a : int  = 4"""
 
-    let [<Literal>] Aligned05 = """
+    let [<Literal>] Realigned05 = """
     let ab : int = 3
 
     let a  : int = 4"""
@@ -124,7 +139,7 @@ module ComplexAlignmentRequired =
         interface IA with member    this.A    = this.A
 """
 
-    let [<Literal>] Aligned06 = """
+    let [<Literal>] Realigned06 = """
         interface IA with member this.A = this.A
 """
 
@@ -133,7 +148,7 @@ module ComplexAlignmentRequired =
         interface IBc with member this.Bc        = this.Bc
 """
 
-    let [<Literal>] Aligned07 = """
+    let [<Literal>] Realigned07 = """
         interface IA  with member this.A  = this.A
         interface IBc with member this.Bc = this.Bc
 """
@@ -144,7 +159,7 @@ module ComplexAlignmentRequired =
         interface ID with member this.Defg =                this.Defg
 """
 
-    let [<Literal>] Aligned08 = """
+    let [<Literal>] Realigned08 = """
         interface IA  with member this.A    = this.A
         interface IBc with member this.Bc   = this.Bc
         interface ID  with member this.Defg = this.Defg
@@ -161,7 +176,7 @@ module ComplexAlignmentRequired =
         }
 """
 
-    let [<Literal>] Aligned09 = """
+    let [<Literal>] Realigned09 = """
     type Abc =
         {
             A   : int
@@ -172,19 +187,19 @@ module ComplexAlignmentRequired =
         }
 """
 
-[<TestCase(NoAlignmentRequired.Empty            , NoAlignmentRequired.Empty          )>]
-[<TestCase(NoAlignmentRequired.OneLine          , NoAlignmentRequired.OneLine        )>]
-[<TestCase(NoAlignmentRequired.WhiteSpaceOnly   , NoAlignmentRequired.WhiteSpaceOnly )>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned00, AlignmentByEqualsRequired.Aligned00)>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned01, AlignmentByEqualsRequired.Aligned01)>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned02, AlignmentByEqualsRequired.Aligned02)>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned03, AlignmentByEqualsRequired.Aligned03)>]
-[<TestCase(AlignmentByEqualsRequired.Unaligned04, AlignmentByEqualsRequired.Aligned04)>]
-[<TestCase(ComplexAlignmentRequired.Unaligned05 , ComplexAlignmentRequired.Aligned05 )>]
-[<TestCase(ComplexAlignmentRequired.Unaligned06 , ComplexAlignmentRequired.Aligned06 )>]
-[<TestCase(ComplexAlignmentRequired.Unaligned07 , ComplexAlignmentRequired.Aligned07 )>]
-[<TestCase(ComplexAlignmentRequired.Unaligned08 , ComplexAlignmentRequired.Aligned08 )>]
-[<TestCase(ComplexAlignmentRequired.Unaligned09 , ComplexAlignmentRequired.Aligned09 )>]
+[<TestCase(NoAlignmentRequired.Empty            , NoAlignmentRequired.Empty           )>]
+[<TestCase(NoAlignmentRequired.OneLine          , NoAlignmentRequired.OneLine         )>]
+[<TestCase(NoAlignmentRequired.WhiteSpaceOnly   , NoAlignmentRequired.WhiteSpaceOnly  )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned00, AlignmentByEqualsRequired.Aligned00 )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned01, AlignmentByEqualsRequired.Aligned01 )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned02, AlignmentByEqualsRequired.Aligned02 )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned03, AlignmentByEqualsRequired.Aligned03 )>]
+[<TestCase(AlignmentByEqualsRequired.Unaligned04, AlignmentByEqualsRequired.Aligned04 )>]
+[<TestCase(ComplexAlignmentRequired.Unaligned05 , ComplexAlignmentRequired.Realigned05)>]
+[<TestCase(ComplexAlignmentRequired.Unaligned06 , ComplexAlignmentRequired.Realigned06)>]
+[<TestCase(ComplexAlignmentRequired.Unaligned07 , ComplexAlignmentRequired.Realigned07)>]
+[<TestCase(ComplexAlignmentRequired.Unaligned08 , ComplexAlignmentRequired.Realigned08)>]
+[<TestCase(ComplexAlignmentRequired.Unaligned09 , ComplexAlignmentRequired.Realigned09)>]
 let ``Alignment.realignAll, always removes excess whitespace and aligns by both all required sub-strings`` (before : string) (after : string) =
     let actual = Alignment.realignAll before
     printfn $"Actual:\n{actual}"
