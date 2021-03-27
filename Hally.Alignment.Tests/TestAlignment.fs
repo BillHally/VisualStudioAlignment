@@ -78,8 +78,18 @@ module AlignmentByCommaRequired =
     ghi, jklm, nop, q
 """
 
-    let [<Literal>] Aligned00 = """
+    let [<Literal>] Aligned00_00_08 = """
+    a  , bc, def
+    ghi, jklm, nop, q
+"""
+
+    let [<Literal>] Aligned00_00_16 = """
     a  , bc  , def
+    ghi, jklm, nop, q
+"""
+
+    let [<Literal>] Aligned00_08_16 = """
+    a, bc    , def
     ghi, jklm, nop, q
 """
 
@@ -92,24 +102,28 @@ module AlignmentByCommaRequired =
 [<TestCase(AlignmentByEqualsRequired.Unaligned02      , "=", AlignmentByEqualsRequired.Aligned02        )>]
 [<TestCase(AlignmentByEqualsRequired.Unaligned03      , "=", AlignmentByEqualsRequired.Aligned03        )>]
 [<TestCase(AlignmentByEqualsRequired.Unaligned04      , "=", AlignmentByEqualsRequired.Aligned04        )>]
-[<TestCase(AlignmentByCommaRequired.Unaligned00       , ",", AlignmentByCommaRequired.Aligned00         )>]
+[<TestCase(AlignmentByCommaRequired.Unaligned00       , ",", AlignmentByCommaRequired.Aligned00_00_16   )>]
 let ``Alignment.align, when passed a substring, aligns the lines it is passed at every occurrence of that substring`` (before : string) (substring : string) (after : string) =
     before
     |> Alignment.align substring
     |> shouldEqual after
 
-[<TestCase(NoAlignmentRequired.Empty                  , NoAlignmentRequired.Empty                  )>]
-[<TestCase(NoAlignmentRequired.OneLine                , NoAlignmentRequired.OneLine                )>]
-[<TestCase(NoAlignmentRequired.WhiteSpaceOnly         , NoAlignmentRequired.WhiteSpaceOnly         )>]
-[<TestCase(AlignmentByEqualsRequired.NotContainingChar, AlignmentByEqualsRequired.NotContainingChar)>]
-[<TestCase(AlignmentByEqualsRequired.Aligned00        , AlignmentByEqualsRequired.Unaligned00      )>]
-[<TestCase(AlignmentByEqualsRequired.Aligned01        , AlignmentByEqualsRequired.Unaligned01      )>]
-[<TestCase(AlignmentByEqualsRequired.Aligned02        , AlignmentByEqualsRequired.Unaligned02      )>]
-[<TestCase(AlignmentByEqualsRequired.Aligned03        , AlignmentByEqualsRequired.Unaligned03      )>]
-[<TestCase(AlignmentByEqualsRequired.Aligned04        , AlignmentByEqualsRequired.Unaligned04      )>]
-let ``Alignment.unalign, unaligns the lines it is passed from after the indent to the end of the line`` (before : string) (after : string) =
+[<TestCase(NoAlignmentRequired.Empty                  ,  0, 50, "=", NoAlignmentRequired.Empty                  , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired.Empty                  ))>]
+[<TestCase(NoAlignmentRequired.OneLine                ,  0, 50, "=", NoAlignmentRequired.OneLine                , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired.OneLine                ))>]
+[<TestCase(NoAlignmentRequired.WhiteSpaceOnly         ,  0, 50, "=", NoAlignmentRequired.WhiteSpaceOnly         , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired.WhiteSpaceOnly         ))>]
+[<TestCase(AlignmentByEqualsRequired.NotContainingChar,  0, 50, "=", AlignmentByEqualsRequired.NotContainingChar, TestName = "Alignment.unalign: " + (nameof AlignmentByEqualsRequired.NotContainingChar))>]
+[<TestCase(AlignmentByEqualsRequired.Aligned00        ,  0, 50, "=", AlignmentByEqualsRequired.Unaligned00      , TestName = "Alignment.unalign: " + (nameof AlignmentByEqualsRequired.Aligned00        ))>]
+[<TestCase(AlignmentByEqualsRequired.Aligned01        ,  0, 50, "=", AlignmentByEqualsRequired.Unaligned01      , TestName = "Alignment.unalign: " + (nameof AlignmentByEqualsRequired.Aligned01        ))>]
+[<TestCase(AlignmentByEqualsRequired.Aligned02        ,  0, 50, "=", AlignmentByEqualsRequired.Unaligned02      , TestName = "Alignment.unalign: " + (nameof AlignmentByEqualsRequired.Aligned02        ))>]
+[<TestCase(AlignmentByEqualsRequired.Aligned03        ,  0, 50, "=", AlignmentByEqualsRequired.Unaligned03      , TestName = "Alignment.unalign: " + (nameof AlignmentByEqualsRequired.Aligned03        ))>]
+[<TestCase(AlignmentByEqualsRequired.Aligned04        ,  0, 50, "=", AlignmentByEqualsRequired.Unaligned04      , TestName = "Alignment.unalign: " + (nameof AlignmentByEqualsRequired.Aligned04        ))>]
+[<TestCase(AlignmentByCommaRequired.Aligned00_00_08   ,  0,  8, ",", AlignmentByCommaRequired.Unaligned00       , TestName = "Alignment.unalign: " + (nameof AlignmentByCommaRequired.Aligned00_00_08   ))>]
+[<TestCase(AlignmentByCommaRequired.Aligned00_00_16   ,  0, 16, ",", AlignmentByCommaRequired.Unaligned00       , TestName = "Alignment.unalign: " + (nameof AlignmentByCommaRequired.Aligned00_00_16   ))>]
+[<TestCase(AlignmentByCommaRequired.Aligned00_08_16   ,  8, 16, ",", AlignmentByCommaRequired.Unaligned00       , TestName = "Alignment.unalign: " + (nameof AlignmentByCommaRequired.Aligned00_08_16   ))>]
+let ``Alignment.unalign, unaligns the lines it is passed from after the indent to the end of the line``
+    (before : string) (startIndex : int) (endIndex : int) (s : string) (after : string) =
     before
-    |> Alignment.unalign
+    |> Alignment.unalign startIndex endIndex s
     |> shouldEqual after
 
 [<TestCase(NoAlignmentRequired.Empty                  , 0, "=", -1)>]
@@ -187,6 +201,16 @@ module ComplexAlignmentRequired =
         }
 """
 
+    let [<Literal>] Unaligned10 = """
+    let a, b          =   ABC
+    let d ,  e   ,  f    ,   g    =       DEFGH
+"""
+
+    let [<Literal>] Realigned10 = """
+    let a, b       = ABC
+    let d, e, f, g = DEFGH
+"""
+
 [<TestCase(NoAlignmentRequired.Empty            , NoAlignmentRequired.Empty           )>]
 [<TestCase(NoAlignmentRequired.OneLine          , NoAlignmentRequired.OneLine         )>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly   , NoAlignmentRequired.WhiteSpaceOnly  )>]
@@ -200,9 +224,10 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned07 , ComplexAlignmentRequired.Realigned07)>]
 [<TestCase(ComplexAlignmentRequired.Unaligned08 , ComplexAlignmentRequired.Realigned08)>]
 [<TestCase(ComplexAlignmentRequired.Unaligned09 , ComplexAlignmentRequired.Realigned09)>]
-let ``Alignment.realignAll, always removes excess whitespace and aligns by both all required sub-strings`` (before : string) (after : string) =
-    let actual = Alignment.realignAll before
-    printfn $"Actual:\n{actual}"
+[<TestCase(ComplexAlignmentRequired.Unaligned10 , ComplexAlignmentRequired.Realigned10)>]
+let ``Alignment.realignAll, always removes excess whitespace and aligns by all required sub-strings`` (before : string) (after : string) =
+    //let actual = Alignment.realignAll before
+    //printfn $"Actual:\n{actual}"
 
     before
     |> Alignment.realignAll

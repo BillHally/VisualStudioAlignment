@@ -15,37 +15,62 @@ let getLengthOfIndent (x : string) : int =
 
     loop 0
 
-[<CompiledName("Unalign")>]
-let unalign (x : string) : string =
-    let lines = x.Split('\n')
+let (|Whitespace|Other|) x =
+    match x with
+    | ' ' | '\t' -> Whitespace x
+    | _          -> Other      x
+
+let getNextIndex (startIndex : int) (s : string) (x : string) : int =
+    if startIndex >= x.Length then -1 else x.IndexOf(s, startIndex)
+
+let unalignLines (startIndex : int) (endIndex : int) (s : string) (lines : string[]) : unit =
+
+    let leadingSpace = s <> ","
+
+    printfn $"Unaligning: {startIndex} to {endIndex}, preserving leading space: {leadingSpace}"
 
     let sb = StringBuilder()
 
-    for i in 0..(lines.Length - 1) do
-        let line = lines.[i]
+    for lineIndex in 0..(lines.Length - 1) do
+        let line = lines.[lineIndex]
 
-        let m = getLengthOfIndent line
+        let m = min line.Length (max startIndex (getLengthOfIndent line))
+
+        // Add the line from the beginning to the max of start index and the end of the indent
         sb.Append(line.Substring(0, m)) |> ignore
 
-        let mutable previousCharWasWhiteSpace = false
-        for ch in line.[m..^0] do
-            match ch with
-            | ' '
-            | '\t' ->
-                if not previousCharWasWhiteSpace then
-                    previousCharWasWhiteSpace <- true
-                    sb.Append(ch) |> ignore
-            | _ ->
-                previousCharWasWhiteSpace <- false
-                sb.Append(ch) |> ignore
+        let n = min line.Length endIndex
 
-        if i < lines.Length - 1 then
-            sb.Append('\n') |> ignore
+        // Unalign
+        for charIndex in m..(n - 1) do
+            match line.[charIndex - 1], line.[charIndex] with
+            | Whitespace _, Whitespace _ -> ()
+            | Whitespace _, Other      c
+            | Other      _, Other      c -> sb.Append(c) |> ignore
+            | Other      _, Whitespace c ->
+                let append =
+                    if leadingSpace then
+                        true
+                    else
+                        let nextIndex =
+                            match getNextIndex charIndex s line with
+                            | -1        -> n
+                            | nextIndex -> nextIndex
 
-    sb.ToString()
+                        let remaining = line.[(charIndex + 1)..(nextIndex - 1)]
+                        not (String.IsNullOrWhiteSpace(remaining))
+
+                if append then
+                    sb.Append(c) |> ignore
+
+        // Add the rest of the line
+        sb.Append(line.Substring(n)) |> ignore
+
+        lines.[lineIndex] <- sb.ToString()
+        sb.Clear() |> ignore
 
 let getMaxNextIndex (startIndex : int) (s : string) (xs : string[]) : int =
-    xs |> Array.fold (fun n x -> max n (if startIndex >= x.Length then -1 else x.IndexOf(s, startIndex))) -1
+    xs |> Array.fold (fun n x -> max n (getNextIndex startIndex s x)) -1
 
 let rec private alignFrom (startIndex : int) (s : string) (lines : string[]) : unit =
     let maxIndex = getMaxNextIndex startIndex s lines
@@ -76,25 +101,40 @@ let rec private alignFrom (startIndex : int) (s : string) (lines : string[]) : u
 
         alignFrom (maxIndex + 1) s lines
 
+let alignLines (s : string) (lines : string[]) : unit =
+    if lines.Length > 1 then
+        alignFrom 0 s lines
+
+[<CompiledName("Unalign")>]
+let unalign (startIndex : int) (endIndex : int) (s : string) (x : string) : string =
+    let lines = x.Split('\n')
+    unalignLines startIndex endIndex s lines
+    String.Join("\n", lines)
+
+[<CompiledName("Align")>]
 let align (s : string) (x : string) : string =
     let lines = x.Split('\n')
-
-    if lines.Length < 2 then
-        x
-    else
-        alignFrom 0 s lines
-        String.Join("\n", lines)
+    alignLines s lines
+    String.Join("\n", lines)
 
 [<CompiledName("Realign")>]
 let realign (s : string) (x : string) =
-    x
-    |> unalign
-    |> align s
+    let lines = x.Split('\n')
+
+    unalignLines 0 100 s lines
+    alignLines         s lines
+
+    String.Join("\n", lines)
 
 [<CompiledName("RealignAll")>]
 let realignAll (x : string) : string =
     let all = [| "with member"; ":"; "="; "," |]
 
-    x
-    |> unalign
-    |> (fun x -> all |> Array.fold (fun acc s -> align s acc) x)
+    let lines = x.Split('\n')
+
+    let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
+
+    all |> Array.fold (fun () s -> unalignLines 0 maxLength s lines) ()
+    all |> Array.fold (fun () s ->   alignLines             s lines) ()
+
+    String.Join("\n", lines)
