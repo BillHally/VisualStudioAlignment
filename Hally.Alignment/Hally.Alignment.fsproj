@@ -12,6 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Seq.fs" />
+    <Compile Include="AlignmentTarget.fs" />
     <Compile Include="Alignment.fs" />
   </ItemGroup>
 
