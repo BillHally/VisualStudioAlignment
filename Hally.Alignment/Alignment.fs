@@ -21,18 +21,36 @@ let (|Whitespace|Other|) x =
     | _          -> Other      x
 
 let getNextIndex (startIndex : int) (s : string) (x : string) : int =
-    if startIndex >= x.Length then -1 else x.IndexOf(s, startIndex)
+    if startIndex >= x.Length then
+        -1
+    else
+        match s with
+        | "" ->
+            x.Substring(startIndex)
+            |> Seq.tryFindIndex
+                (
+                    fun c ->
+                        match c with
+                        | Whitespace _ -> true
+                        |            _ -> false
+                )
+            |> Option.map ((+) startIndex)
+            |> Option.defaultValue -1
+        | s ->
+            x.IndexOf(s, startIndex)
 
-let unalignLines (startIndex : int) (endIndex : int) (s : string) (lines : string[]) : unit =
+let unalignLines (startIndex : int) (endIndex : int) (s : string) (lines : string[]) : string[] =
 
     let leadingSpace = s <> ","
 
-    printfn $"Unaligning: {startIndex} to {endIndex}, preserving leading space: {leadingSpace}"
+    printfn $"Unaligning: {startIndex} to {endIndex}, ('{s}') preserving leading space: {leadingSpace}"
 
     let sb = StringBuilder()
 
-    for lineIndex in 0..(lines.Length - 1) do
-        let line = lines.[lineIndex]
+    let updated = Array.copy lines
+
+    for lineIndex in 0..(updated.Length - 1) do
+        let line = updated.[lineIndex]
 
         let m = min line.Length (max startIndex (getLengthOfIndent line))
 
@@ -43,42 +61,45 @@ let unalignLines (startIndex : int) (endIndex : int) (s : string) (lines : strin
 
         // Unalign
         for charIndex in m..(n - 1) do
-            match line.[charIndex - 1], line.[charIndex] with
-            | Whitespace _, Whitespace _ -> ()
-            | Whitespace _, Other      c
-            | Other      _, Other      c -> sb.Append(c) |> ignore
-            | Other      _, Whitespace c ->
-                let append =
-                    if leadingSpace then
-                        true
-                    else
-                        let nextIndex =
-                            match getNextIndex charIndex s line with
-                            | -1        -> n
-                            | nextIndex -> nextIndex
+            match getNextIndex charIndex s line with
+            | -1        -> sb.Append(line.[charIndex]) |> ignore
+            | nextIndex ->
+                match line.[charIndex - 1], line.[charIndex] with
+                | Whitespace _, Whitespace _ -> ()
+                | Whitespace _, Other      c
+                | Other      _, Other      c -> sb.Append(c) |> ignore
+                | Other      _, Whitespace c ->
+                    let append =
+                        if leadingSpace then
+                            true
+                        else
+                            let remaining = line.[(charIndex + 1)..(nextIndex - 1)]
+                            not (String.IsNullOrWhiteSpace(remaining))
 
-                        let remaining = line.[(charIndex + 1)..(nextIndex - 1)]
-                        not (String.IsNullOrWhiteSpace(remaining))
-
-                if append then
-                    sb.Append(c) |> ignore
+                    if append then
+                        sb.Append(c) |> ignore
 
         // Add the rest of the line
         sb.Append(line.Substring(n)) |> ignore
 
-        lines.[lineIndex] <- sb.ToString()
+        updated.[lineIndex] <- sb.ToString()
         sb.Clear() |> ignore
 
-let getMaxNextIndex (startIndex : int) (s : string) (xs : string[]) : int =
-    xs |> Array.fold (fun n x -> max n (getNextIndex startIndex s x)) -1
+    updated
 
-let rec private alignFrom (startIndex : int) (s : string) (lines : string[]) : unit =
+let getMaxNextIndex (startIndex : int) (s : string) (xs : string[]) : int =
+    let result = xs |> Array.fold (fun n x -> max n (getNextIndex startIndex s x)) -1
+    printfn $"startIndex: {startIndex} result: {result}"
+    result
+
+let rec private alignFrom count (startIndex : int) (s : string) (lines : string[]) : string[] =
+    printfn $"Aligning ({count}) from: {startIndex} ('{s}')"
     let maxIndex = getMaxNextIndex startIndex s lines
-    if maxIndex = -1 then
-        ()
+    if maxIndex = -1 || s = "" then // TODO: remove the need for this empty string comparison
+        lines
     else
         let sb = StringBuilder()
-
+        let updated = Array.create lines.Length null
         for i in 0..(lines.Length - 1) do
             let line = lines.[i]
             if startIndex < line.Length then
@@ -90,51 +111,85 @@ let rec private alignFrom (startIndex : int) (s : string) (lines : string[]) : u
                     sb.Append(line.Substring(0, n)) |> ignore
 
                     // Pad the difference between the actual index for this line and the max index
-                    sb.Append(' ', maxIndex - n) |> ignore
+                    printfn $"maxIndex - n: {maxIndex - n}"
+                    let diffLength = maxIndex - n
+                    if diffLength > 0 then
+                        sb.Append(' ', diffLength) |> ignore
 
                     // Add the rest of the line
                     sb.Append(line.Substring(n)) |> ignore
 
                     // Update the line, and reset the builder
-                    lines.[i] <- sb.ToString()
+                    updated.[i] <- sb.ToString()
                     sb.Clear() |> ignore
+                else
+                    updated.[i] <- line
+            else
+                updated.[i] <- line
 
-        alignFrom (maxIndex + 1) s lines
+        if count > 10 then
+            updated
+        else
+            alignFrom (count + 1) (maxIndex + 1) s updated
 
-let alignLines (s : string) (lines : string[]) : unit =
+let alignLines (s : string) (lines : string[]) : string[] =
     if lines.Length > 1 then
-        alignFrom 0 s lines
+        alignFrom 0 0 s lines
+    else
+        lines
+
+let private all = [| "with member"; ":"; "="; "," |]
 
 [<CompiledName("Unalign")>]
 let unalign (startIndex : int) (endIndex : int) (s : string) (x : string) : string =
     let lines = x.Split('\n')
-    unalignLines startIndex endIndex s lines
+
+    let lines = unalignLines startIndex endIndex s lines
+
     String.Join("\n", lines)
 
 [<CompiledName("Align")>]
 let align (s : string) (x : string) : string =
     let lines = x.Split('\n')
-    alignLines s lines
+
+    let lines = alignLines s lines
+
     String.Join("\n", lines)
 
 [<CompiledName("Realign")>]
 let realign (s : string) (x : string) =
     let lines = x.Split('\n')
 
-    unalignLines 0 100 s lines
-    alignLines         s lines
+    let lines = unalignLines 0 100 s lines
+    let lines = alignLines         s lines
+
+    String.Join("\n", lines)
+
+[<CompiledName("UnalignAll")>]
+let unalignAll (x : string) : string =
+    let lines = x.Split('\n')
+
+    let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
+
+    let lines = all |> Array.fold (fun acc s -> let xs = unalignLines 0 maxLength s acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
+
+    String.Join("\n", lines)
+
+[<CompiledName("AlignAll")>]
+let alignAll (x : string) : string =
+    let lines = x.Split('\n')
+
+    let lines = all |> Array.fold (fun acc s -> let xs =   alignLines s acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
 
     String.Join("\n", lines)
 
 [<CompiledName("RealignAll")>]
 let realignAll (x : string) : string =
-    let all = [| "with member"; ":"; "="; "," |]
-
     let lines = x.Split('\n')
 
     let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
 
-    all |> Array.fold (fun () s -> unalignLines 0 maxLength s lines) ()
-    all |> Array.fold (fun () s ->   alignLines             s lines) ()
+    let lines = all |> Array.fold (fun acc s -> let xs = unalignLines 0 maxLength s acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
+    let lines = all |> Array.fold (fun acc s -> let xs =   alignLines             s acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
 
     String.Join("\n", lines)

@@ -71,6 +71,22 @@ module AlignmentByEqualsRequired =
 
     let a  = 4"""
 
+    let [<Literal>] Unaligned05 = """
+        {
+            D = efg 7
+            Hi = jklmn 8 90
+            O = pqr 1000 100 1
+        }
+"""
+
+    let [<Literal>] Aligned05 = """
+        {
+            D  = efg 7
+            Hi = jklmn 8 90
+            O  = pqr 1000 100 1
+        }
+"""
+
 [<RequireQualifiedAccess>]
 module AlignmentByCommaRequired =
     let [<Literal>] Unaligned00 = """
@@ -102,11 +118,14 @@ module AlignmentByCommaRequired =
 [<TestCase(AlignmentByEqualsRequired.Unaligned02      , "=", AlignmentByEqualsRequired.Aligned02        )>]
 [<TestCase(AlignmentByEqualsRequired.Unaligned03      , "=", AlignmentByEqualsRequired.Aligned03        )>]
 [<TestCase(AlignmentByEqualsRequired.Unaligned04      , "=", AlignmentByEqualsRequired.Aligned04        )>]
+//[<TestCase(AlignmentByEqualsRequired.Unaligned05      , "=", AlignmentByEqualsRequired.Aligned05        )>]
 [<TestCase(AlignmentByCommaRequired.Unaligned00       , ",", AlignmentByCommaRequired.Aligned00_00_16   )>]
 let ``Alignment.align, when passed a substring, aligns the lines it is passed at every occurrence of that substring`` (before : string) (substring : string) (after : string) =
-    before
-    |> Alignment.align substring
-    |> shouldEqual after
+    let actual = Alignment.align substring before
+    printfn $"Before:\n012345678901234567890\n{before}"
+    printfn $"Actual:\n012345678901234567890\n{actual}"
+
+    actual |> shouldEqual after
 
 [<TestCase(NoAlignmentRequired.Empty                  ,  0, 50, "=", NoAlignmentRequired.Empty                  , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired.Empty                  ))>]
 [<TestCase(NoAlignmentRequired.OneLine                ,  0, 50, "=", NoAlignmentRequired.OneLine                , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired.OneLine                ))>]
@@ -211,6 +230,32 @@ module ComplexAlignmentRequired =
     let d, e, f, g = DEFGH
 """
 
+    let [<Literal>] Unaligned11 = """
+        {
+            D = efg 7
+            Hi  =  jklmn   8   90
+            O  =  pqr 1000 100 1
+        }
+"""
+
+    // Maintain existing spacing between unaffected non-whitespace substrings
+    let [<Literal>] Realigned11 = """
+        {
+            D  = efg 7
+            Hi =  jklmn   8   90
+            O  =  pqr 1000 100 1
+        }
+"""
+
+    // Re-align everything, including non-special cased non-whitespace substrings
+    let [<Literal>] Realigned12 = """
+        {
+            D  = efg   7
+            Hi = jklmn 8    90
+            O  = pqr   1000 100 1
+        }
+"""
+
 [<TestCase(NoAlignmentRequired.Empty            , NoAlignmentRequired.Empty           )>]
 [<TestCase(NoAlignmentRequired.OneLine          , NoAlignmentRequired.OneLine         )>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly   , NoAlignmentRequired.WhiteSpaceOnly  )>]
@@ -225,10 +270,10 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned08 , ComplexAlignmentRequired.Realigned08)>]
 [<TestCase(ComplexAlignmentRequired.Unaligned09 , ComplexAlignmentRequired.Realigned09)>]
 [<TestCase(ComplexAlignmentRequired.Unaligned10 , ComplexAlignmentRequired.Realigned10)>]
+[<TestCase(ComplexAlignmentRequired.Unaligned11 , ComplexAlignmentRequired.Realigned11)>]
 let ``Alignment.realignAll, always removes excess whitespace and aligns by all required sub-strings`` (before : string) (after : string) =
-    //let actual = Alignment.realignAll before
-    //printfn $"Actual:\n{actual}"
+    let actual = Alignment.realignAll before
+    printfn $"Before:\n012345678901234567890\n{before}"
+    printfn $"Actual:\n012345678901234567890\n{actual}"
 
-    before
-    |> Alignment.realignAll
-    |> shouldEqual after
+    actual |> shouldEqual after
