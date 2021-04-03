@@ -160,22 +160,19 @@ let ``Alignment.unalign, unaligns the lines it is passed from after the indent t
     |> Alignment.unalign startIndex endIndex s
     |> shouldEqual after
 
-[<TestCase(NoAlignmentRequired.Empty      , 0, "=", -1)>]
-[<TestCase(NoAlignmentRequired.OneLine    , 0, "=", 10)>]
-[<TestCase(AlignByEquals.NotContainingChar, 0, "=", -1)>]
-[<TestCase(AlignByEquals.Unaligned00      , 0, "=", 11)>]
-[<TestCase(AlignByComma.Comma_U_00        , 0, ",",  7)>]
-[<TestCase(AlignByComma.Comma_U_00        , 8, ",", 13)>]
-[<TestCase(AlignByOther.Other_U_00        , 0, "" ,  4)>]
-[<TestCase(AlignByOther.Other_U_00        , 5, "" ,  8)>]
-let ``getMaxNextIndex always returns the expected index`` (x : string) (startIndex : int) (alignBy : string) (expected : int) =
-    x.Split('\n')
-    |> Alignment.getMaxNextIndex startIndex (AlignmentTarget.ofString alignBy)
-    |> shouldEqual expected
+[<TestCase(NoAlignmentRequired.Empty      , 0, "=", "-1"         , TestName = "Alignment.getNextIndices " + (nameof NoAlignmentRequired.Empty      ) + ", {1}, {2}")>]
+[<TestCase(NoAlignmentRequired.OneLine    , 0, "=", "-1;10;-1"   , TestName = "Alignment.getNextIndices " + (nameof NoAlignmentRequired.OneLine    ) + ", {1}, {2}")>]
+[<TestCase(AlignByEquals.NotContainingChar, 0, "=", "-1;-1;-1;-1", TestName = "Alignment.getNextIndices " + (nameof AlignByEquals.NotContainingChar) + ", {1}, {2}")>]
+[<TestCase(AlignByEquals.Unaligned00      , 0, "=", "-1;10;11;-1", TestName = "Alignment.getNextIndices " + (nameof AlignByEquals.Unaligned00      ) + ", {1}, {2}")>]
+[<TestCase(AlignByComma.Comma_U_00        , 0, ",", "-1;5;7;-1"  , TestName = "Alignment.getNextIndices " + (nameof AlignByComma.Comma_U_00        ) + ", {1}, {2}")>]
+[<TestCase(AlignByComma.Comma_U_00        , 8, ",", "-1;9;13;-1" , TestName = "Alignment.getNextIndices " + (nameof AlignByComma.Comma_U_00        ) + ", {1}, {2}")>]
+[<TestCase(AlignByOther.Other_U_00        , 0, "" ,  "-1;4;4;-1" , TestName = "Alignment.getNextIndices " + (nameof AlignByOther.Other_U_00        ) + ", {1}, {2}")>]
+[<TestCase(AlignByOther.Other_U_00        , 5, "" ,  "-1;6;8;-1" , TestName = "Alignment.getNextIndices " + (nameof AlignByOther.Other_U_00        ) + ", {1}, {2}")>]
+let ``Alignment.getNextIndices always returns the expected index`` (x : string) (startIndex : int) (alignBy : string) (expected : string) =
+    let expected = expected.Split(";") |> Array.map (fun x -> [| int x |])
 
-[<TestCase("    abc defg", 5, "", 8)>]
-let ``AlignmentTarget.getNextIndex always returns the expected index`` (text : string) (startIndex : int) (alignBy : string) (expected : int) =
-    AlignmentTarget.getNextIndex startIndex text (AlignmentTarget.ofString alignBy)
+    x.Split('\n')
+    |> Alignment.getNextIndices startIndex [| AlignmentTarget.ofString alignBy |]
     |> shouldEqual expected
 
 [<RequireQualifiedAccess>]
@@ -258,15 +255,8 @@ module ComplexAlignmentRequired =
             O  =  pqr 1000 100 1
 """
 
-    // Maintain existing spacing between unaffected non-whitespace substrings
-    let [<Literal>] Realigned11 = """
-            D  = efg 7
-            Hi =  jklmn   8   90
-            O  =  pqr 1000 100 1
-"""
-
     // Re-align everything, including non-special cased non-whitespace substrings
-    let [<Literal>] Realigned12 = """
+    let [<Literal>] Realigned11 = """
             D  = efg   7
             Hi = jklmn 8    90
             O  = pqr   1000 100 1
@@ -284,7 +274,7 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned06, ComplexAlignmentRequired.Realigned06, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned06))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned07, ComplexAlignmentRequired.Realigned07, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned07))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned08, ComplexAlignmentRequired.Realigned08, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned08))>]
-//[<TestCase(ComplexAlignmentRequired.Unaligned09, ComplexAlignmentRequired.Realigned09, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned09))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned09, ComplexAlignmentRequired.Realigned09, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned09))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned10))>]
 //[<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned11))>]
 let ``Alignment.realignAll, always removes excess whitespace and aligns by all required sub-strings`` (before : string) (after : string) =

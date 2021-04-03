@@ -67,3 +67,6 @@ module AlignmentTarget =
                 |> Option.map ((+) startIndex)
                 |> Option.defaultValue -1
                 //|> (fun x -> printfn $"Next index of (Other) after {startIndex}: %2d{x} in: '{text.TrimEnd()}'"; x)
+
+    let getNextIndexByAlignmentTarget (startIndex : int) (text : string) (alignmentTargets : _[]) : int[] =
+        alignmentTargets |> Array.map (getNextIndex startIndex text)

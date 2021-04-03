@@ -64,21 +64,53 @@ let unalignLines (startIndex : int) (endIndex : int) (a : AlignmentTarget) (line
 
     updated
 
-let getNextIndices (startIndex : int) (a : AlignmentTarget) (xs : string[]) : int[] =
-    xs |> Array.map (fun x -> AlignmentTarget.getNextIndex startIndex x a)
+let getNextIndices (startIndex : int) (alignBy : AlignmentTarget[]) (xs : string[]) : int[][] =
+    xs |> Array.map (fun x -> AlignmentTarget.getNextIndexByAlignmentTarget startIndex x alignBy)
 
-let getMaxNextIndex (startIndex : int) (a : AlignmentTarget) (xs : string[]) : int =
-    xs
-    |> getNextIndices startIndex a
-    |> Array.max
+let containsMoreThanOneNonNegative (xs : int[]) =
+    let rec loop i n =
+        if i >= xs.Length then
+            false
+        else if xs.[i] < 0 then
+            loop (i + 1) n
+        else if n > 0 then
+            true
+        else
+            loop (i + 1) (n + 1)
 
-let rec private alignFrom count (startIndex : int) (a : AlignmentTarget) (lines : string[]) : string[] =
-    let nextIndices = getNextIndices startIndex a lines
-    printfn $"next indices: %A{nextIndices}"
-    let maxIndex = Array.max nextIndices
-    if maxIndex = -1 then // || a = Other then
-        lines
-    else
+    loop 0 0
+
+/// When passed some lines, we want to identify which alignment target to use next - this is the one which,
+/// when you take the *maximum* of the next index for that target across all the lines, has the *lowest* value
+let getNextAlignmentTarget (startIndex : int) (alignBy : AlignmentTarget[]) (xs : string[]) : (AlignmentTarget * int * int[]) option =
+    let indicesByLine = xs |> getNextIndices startIndex alignBy
+
+    [|
+        for i in 0..(alignBy.Length - 1) do
+            let a = alignBy.[i]
+            let indices = indicesByLine |> Array.map (fun x -> x.[i])
+            if containsMoreThanOneNonNegative indices then
+                let max = indices |> Array.max
+                Some (a, max, indices)
+            else
+                None
+    |]
+    |> Array.fold (
+        fun acc x ->
+            match acc with
+            | None -> x
+            | Some (_, accMax, _) ->
+                match x with
+                | Some (_, m, _) when m < accMax -> x
+                | _                              -> acc
+        ) None
+
+let rec private alignFrom (startIndex : int) (alignBy : AlignmentTarget[]) (lines : string[]) already : string[] =
+    match getNextAlignmentTarget startIndex alignBy lines with
+    | None -> lines
+    | Some (a, maxIndex, nextIndices) ->
+        //printfn $"next indices: {startIndex}: {a}, {maxIndex}, %A{nextIndices}"
+
         let sb = StringBuilder()
         let updated = Array.create lines.Length null
 
@@ -90,7 +122,7 @@ let rec private alignFrom count (startIndex : int) (a : AlignmentTarget) (lines 
                 updated.[i] <- line
             else
                 let n = nextIndices.[i]
-                printfn $"Aligning ({count}) from: {startIndex} ({a}): n: {n} maxIndex: {maxIndex}"
+                //printfn $"Aligning from: {startIndex} ({a}): n: {n} maxIndex: {maxIndex}"
 
                 if n = -1 || n = maxIndex then
                     // Leave the current line unchanged if it either doesn't contain s, or it contains it at the max index
@@ -98,7 +130,7 @@ let rec private alignFrom count (startIndex : int) (a : AlignmentTarget) (lines 
                 else
                     // Add the line from the start index to the the character before n
                     sb.Append(line.Substring(0, n)) |> ignore
-                    printfn $"n: {n}"
+                    //printfn $"n: {n}"
                     // If appropriate, pad the difference between the actual index for this line and the max index
                     match a with
                     | Other ->
@@ -127,16 +159,13 @@ let rec private alignFrom count (startIndex : int) (a : AlignmentTarget) (lines 
                     updated.[i] <- sb.ToString()
                     sb.Clear() |> ignore
 
-        printfn $"Latest: {String.Join(string '\n', updated)}"
+        //printfn $"Latest:\n{String.Join(string '\n', updated)}"
 
-        if count > 10 then
-            updated
-        else
-            alignFrom (count + 1) (maxIndex + 1) a updated
+        alignFrom (maxIndex + 1) alignBy updated (already |> Set.add a)
 
-let alignLines (a : AlignmentTarget) (lines : string[]) : string[] =
+let alignLines (alignBy : AlignmentTarget[]) (lines : string[]) : string[] =
     if lines.Length > 1 then
-        alignFrom 0 0 a lines
+        alignFrom 0 alignBy lines Set.empty
     else
         lines
 
@@ -156,7 +185,7 @@ let align (s : string) (x : string) : string =
 
     let a = AlignmentTarget.ofString s
 
-    let lines = alignLines a lines
+    let lines = alignLines [| a |] lines
 
     String.Join("\n", lines)
 
@@ -166,8 +195,10 @@ let realign (s : string) (x : string) =
 
     let a = AlignmentTarget.ofString s
 
-    let lines = unalignLines 0 100 a lines
-    let lines = alignLines         a lines
+    let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
+
+    let lines = unalignLines 0 maxLength    a    lines
+    let lines = alignLines               [| a |] lines
 
     String.Join("\n", lines)
 
@@ -185,7 +216,7 @@ let unalignAll (x : string) : string =
 let alignAll (x : string) : string =
     let lines = x.Split('\n')
 
-    let lines = AlignmentTarget.all |> Array.fold (fun acc s -> let xs =   alignLines s acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
+    let lines = alignLines AlignmentTarget.all lines //acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
 
     String.Join("\n", lines)
 
@@ -196,6 +227,6 @@ let realignAll (x : string) : string =
     let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
 
     let lines = AlignmentTarget.all |> Array.fold (fun acc a -> unalignLines 0 maxLength a acc) lines
-    let lines = AlignmentTarget.all |> Array.fold (fun acc a ->   alignLines             a acc) lines
+    let lines = alignLines (AlignmentTarget.all |> Array.filter ((<>) Other)) lines
 
     String.Join("\n", lines)
