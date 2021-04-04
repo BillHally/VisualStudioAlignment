@@ -172,7 +172,7 @@ let ``Alignment.getNextIndices always returns the expected index`` (x : string) 
     let expected = expected.Split(";") |> Array.map (fun x -> [| int x |])
 
     x.Split('\n')
-    |> Alignment.getNextIndices startIndex [| AlignmentTarget.ofString alignBy |]
+    |> Alignment.getNextIndices startIndex [| TokenKind.ofString alignBy |]
     |> shouldEqual expected
 
 [<RequireQualifiedAccess>]
@@ -218,7 +218,6 @@ module ComplexAlignmentRequired =
 """
 
     let [<Literal>] Unaligned09 = """
-    type Abc =
         {
             A : int
             Bc : string
@@ -229,7 +228,6 @@ module ComplexAlignmentRequired =
 """
 
     let [<Literal>] Realigned09 = """
-    type Abc =
         {
             A   : int
             Bc  : string
@@ -276,7 +274,7 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned08, ComplexAlignmentRequired.Realigned08, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned08))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned09, ComplexAlignmentRequired.Realigned09, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned09))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned10))>]
-//[<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned11))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned11))>]
 let ``Alignment.realignAll, always removes excess whitespace and aligns by all required sub-strings`` (before : string) (after : string) =
     let actual = Alignment.realignAll before
     printfn $"Before  :\n012345678901234567890\n{before}"

@@ -15,11 +15,11 @@ let getLengthOfIndent (x : string) : int =
 
     loop 0
 
-let unalignLines (startIndex : int) (endIndex : int) (a : AlignmentTarget) (lines : string[]) : string[] =
+let unalignLines (startIndex : int) (endIndex : int) (tk : TokenKind) (lines : string[]) : string[] =
 
-    let leadingSpace = a <> Comma
+    let leadingSpace = tk <> Comma
 
-    printfn $"Unaligning: {startIndex} to {endIndex}, ('{a}') preserving leading space: {leadingSpace}"
+    printfn $"Unaligning: {startIndex} to {endIndex}, ('{tk}') preserving leading space: {leadingSpace}"
 
     let sb = StringBuilder()
 
@@ -37,7 +37,7 @@ let unalignLines (startIndex : int) (endIndex : int) (a : AlignmentTarget) (line
 
         // Unalign
         for charIndex in m..(n - 1) do
-            match AlignmentTarget.getNextIndex charIndex line a with
+            match TokenKind.getNextIndex charIndex line tk with
             | -1        -> sb.Append(line.[charIndex]) |> ignore
             | nextIndex ->
                 match line.[charIndex - 1], line.[charIndex] with
@@ -64,8 +64,8 @@ let unalignLines (startIndex : int) (endIndex : int) (a : AlignmentTarget) (line
 
     updated
 
-let getNextIndices (startIndex : int) (alignBy : AlignmentTarget[]) (xs : string[]) : int[][] =
-    xs |> Array.map (fun x -> AlignmentTarget.getNextIndexByAlignmentTarget startIndex x alignBy)
+let getNextIndices (startIndex : int) (alignBy : TokenKind[]) (xs : string[]) : int[][] =
+    xs |> Array.map (fun x -> TokenKind.getNextIndexByTokenKind startIndex x alignBy)
 
 let containsMoreThanOneNonNegative (xs : int[]) =
     let rec loop i n =
@@ -80,9 +80,9 @@ let containsMoreThanOneNonNegative (xs : int[]) =
 
     loop 0 0
 
-/// When passed some lines, we want to identify which alignment target to use next - this is the one which,
-/// when you take the *maximum* of the next index for that target across all the lines, has the *lowest* value
-let getNextAlignmentTarget (startIndex : int) (alignBy : AlignmentTarget[]) (xs : string[]) : (AlignmentTarget * int * int[]) option =
+/// When passed some lines, we want to identify which kind of token to align next - this is the one which,
+/// when you take the *maximum* of the next index for that kind of token across all the lines, has the *lowest* value
+let getNextTokenKindToAlignBy (startIndex : int) (alignBy : TokenKind[]) (xs : string[]) : (TokenKind * int * int[]) option =
     let indicesByLine = xs |> getNextIndices startIndex alignBy
 
     [|
@@ -105,8 +105,8 @@ let getNextAlignmentTarget (startIndex : int) (alignBy : AlignmentTarget[]) (xs 
                 | _                              -> acc
         ) None
 
-let rec private alignFrom (startIndex : int) (alignBy : AlignmentTarget[]) (lines : string[]) already : string[] =
-    match getNextAlignmentTarget startIndex alignBy lines with
+let rec private alignFrom (startIndex : int) (alignBy : TokenKind[]) (lines : string[]) already : string[] =
+    match getNextTokenKindToAlignBy startIndex alignBy lines with
     | None -> lines
     | Some (a, maxIndex, nextIndices) ->
         //printfn $"next indices: {startIndex}: {a}, {maxIndex}, %A{nextIndices}"
@@ -163,7 +163,7 @@ let rec private alignFrom (startIndex : int) (alignBy : AlignmentTarget[]) (line
 
         alignFrom (maxIndex + 1) alignBy updated (already |> Set.add a)
 
-let alignLines (alignBy : AlignmentTarget[]) (lines : string[]) : string[] =
+let alignLines (alignBy : TokenKind[]) (lines : string[]) : string[] =
     if lines.Length > 1 then
         alignFrom 0 alignBy lines Set.empty
     else
@@ -173,9 +173,9 @@ let alignLines (alignBy : AlignmentTarget[]) (lines : string[]) : string[] =
 let unalign (startIndex : int) (endIndex : int) (s : string) (x : string) : string =
     let lines = x.Split('\n')
 
-    let a = AlignmentTarget.ofString s
+    let tk = TokenKind.ofString s
 
-    let lines = unalignLines startIndex endIndex a lines
+    let lines = unalignLines startIndex endIndex tk lines
 
     String.Join("\n", lines)
 
@@ -183,9 +183,9 @@ let unalign (startIndex : int) (endIndex : int) (s : string) (x : string) : stri
 let align (s : string) (x : string) : string =
     let lines = x.Split('\n')
 
-    let a = AlignmentTarget.ofString s
+    let tk = TokenKind.ofString s
 
-    let lines = alignLines [| a |] lines
+    let lines = alignLines [| tk |] lines
 
     String.Join("\n", lines)
 
@@ -193,12 +193,12 @@ let align (s : string) (x : string) : string =
 let realign (s : string) (x : string) =
     let lines = x.Split('\n')
 
-    let a = AlignmentTarget.ofString s
+    let tk = TokenKind.ofString s
 
     let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
 
-    let lines = unalignLines 0 maxLength    a    lines
-    let lines = alignLines               [| a |] lines
+    let lines = unalignLines 0 maxLength    tk    lines
+    let lines = alignLines               [| tk |] lines
 
     String.Join("\n", lines)
 
@@ -208,7 +208,14 @@ let unalignAll (x : string) : string =
 
     let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
 
-    let lines = AlignmentTarget.all |> Array.fold (fun acc s -> let xs = unalignLines 0 maxLength s acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
+    let lines =
+        TokenKind.all
+        |> Array.fold (
+            fun acc s ->
+                let xs = unalignLines 0 maxLength s acc
+                printfn $"Latest: {String.Join(string '\n', xs)}"
+                xs
+            ) lines
 
     String.Join("\n", lines)
 
@@ -216,7 +223,7 @@ let unalignAll (x : string) : string =
 let alignAll (x : string) : string =
     let lines = x.Split('\n')
 
-    let lines = alignLines AlignmentTarget.all lines //acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
+    let lines = alignLines TokenKind.all lines //acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
 
     String.Join("\n", lines)
 
@@ -226,7 +233,10 @@ let realignAll (x : string) : string =
 
     let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
 
-    let lines = AlignmentTarget.all |> Array.fold (fun acc a -> unalignLines 0 maxLength a acc) lines
-    let lines = alignLines (AlignmentTarget.all |> Array.filter ((<>) Other)) lines
+    let lines =
+        TokenKind.all
+        |> Array.fold (fun acc a -> unalignLines 0 maxLength a acc) lines
+
+    let lines = alignLines (TokenKind.all (*|> Array.filter ((<>) Other)*)) lines
 
     String.Join("\n", lines)

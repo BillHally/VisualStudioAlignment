@@ -13,7 +13,7 @@
 
   <ItemGroup>
     <Compile Include="Seq.fs" />
-    <Compile Include="AlignmentTarget.fs" />
+    <Compile Include="TokenKind.fs" />
     <Compile Include="Alignment.fs" />
   </ItemGroup>
 
