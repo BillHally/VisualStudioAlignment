@@ -3,40 +3,36 @@ module Hally.Alignment.Alignment
 
 open System
 
-let unalignLines (startIndex : int) (endIndex : int) (tk : TokenKind) (lines : Line[]) : Line[] =
-
-    let leadingSpace = tk <> Comma
-
-    printfn $"Unaligning: {startIndex} to {endIndex}, ('{tk}') preserving leading space: {leadingSpace}"
+let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
 
     Array.init lines.Length
         (fun i ->
             let tokens = lines.[i].Tokens
 
-            let updated = Array.create tokens.Length Unchecked.defaultof<_>
+            let updated = ResizeArray()
 
             for i in 0..(tokens.Length - 1) do
-                updated.[i] <-
-                    if i = 0 then
-                        tokens.[0]
-                    else
-                        let previous = updated.[i - 1]
+                if i = 0 then
+                    tokens.[0]
+                else
+                    let previous = updated.[i - 1]
 
-                        let t = tokens.[i]
+                    let t = tokens.[i]
 
-                        let start =
-                            match t.Kind with
-                            | Comma
-                            | Return -> previous.Last + 1
-                            | _      -> previous.Last + 2
-                        {
-                            t with
-                                Start = start
-                                Last  = t.Value.Length + start - 1
-                        }
+                    let start =
+                        match t.Kind with
+                        | Comma
+                        | Return -> previous.Last + 1
+                        | _      -> previous.Last + 2
+                    {
+                        t with
+                            Start = start
+                            Last  = t.Value.Length + start - 1
+                    }
+                |> updated.Add
 
             {
-                Tokens = updated
+                Tokens = List.ofSeq updated
             }
         )
 
@@ -97,8 +93,6 @@ let rec private alignFrom (startIndex : int) (alignBy : TokenKind[]) (lines : Li
     match getNextTokenKindToAlignBy startIndex alignBy lines with
     | None -> lines
     | Some a ->
-        printfn $"next indices: %2d{startIndex}: {a.Kind}, %2d{a.MaxIndex}, %A{a.Indices}"
-
         let updated =
             Array.init lines.Length
                 (fun i ->
@@ -109,7 +103,6 @@ let rec private alignFrom (startIndex : int) (alignBy : TokenKind[]) (lines : Li
                         line
                     else
                         let n = a.Indices.[i]
-                        //printfn $"Aligning from: {startIndex} ({a}): n: {n} maxIndex: {maxIndex}"
 
                         if n = -1 || n = a.MaxIndex then
                             // Leave the current line unchanged if it either doesn't contain s, or it contains it at the max index
@@ -122,7 +115,7 @@ let rec private alignFrom (startIndex : int) (alignBy : TokenKind[]) (lines : Li
 
                             {
                                 Tokens =
-                                    Array.init line.Tokens.Length
+                                    List.init line.Tokens.Length
                                         (fun i ->
                                             let t = line.Tokens.[i]
                                             if addPadding || t.Start > startIndex && t.Kind = a.Kind then
@@ -136,8 +129,6 @@ let rec private alignFrom (startIndex : int) (alignBy : TokenKind[]) (lines : Li
                                                 t
                                         )
                             }
-
-                //printfn $"Latest:\n{String.Join(string '\n', updated)}"
                 )
 
         alignFrom (a.MaxIndex + 1) alignBy updated (already |> Set.add a.Kind)
@@ -149,18 +140,14 @@ let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
         lines
 
 [<CompiledName("Unalign")>]
-let unalign (startIndex : int) (endIndex : int) (s : string) (x : string) : string =
+let unalign (s : string) (x : string) : string =
     let lines = x.Split('\n') |> Array.map Line.ofString
 
     let tk = TokenKind.ofString s
 
-    let lines = unalignLines startIndex endIndex tk lines
-    let unaligned = String.Join("\n", lines)
-    printfn $"Unaligned:{unaligned}"
+    let lines = unalignLines tk lines
 
     let lines = lines |> Array.map Line.toString
-    //let stringed = String.Join("\n", lines)
-    //printfn $"Stringed:{stringed}"
     String.Join("\n", lines)
 
 [<CompiledName("Align")>]
@@ -180,10 +167,8 @@ let realign (s : string) (x : string) =
 
     let tk = TokenKind.ofString s
 
-    let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
-
-    let lines = unalignLines 0 maxLength    tk    lines
-    let lines = alignLines               [| tk |] lines
+    let lines = unalignLines    tk    lines
+    let lines = alignLines   [| tk |] lines
 
     let lines = lines |> Array.map Line.toString
     String.Join("\n", lines)
@@ -192,16 +177,9 @@ let realign (s : string) (x : string) =
 let unalignAll (x : string) : string =
     let lines = x.Split('\n') |> Array.map Line.ofString
 
-    let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
-
     let lines =
         TokenKind.all
-        |> Array.fold (
-            fun acc s ->
-                let xs = unalignLines 0 maxLength s acc
-                printfn $"Latest: {String.Join(string '\n', xs)}"
-                xs
-            ) lines
+        |> Array.fold (fun acc s -> unalignLines s acc) lines
 
     let lines = lines |> Array.map Line.toString
     String.Join("\n", lines)
@@ -210,7 +188,7 @@ let unalignAll (x : string) : string =
 let alignAll (x : string) : string =
     let lines = x.Split('\n') |> Array.map Line.ofString
 
-    let lines = alignLines TokenKind.all lines //acc in printfn $"Latest: {String.Join(string '\n', xs)}"; xs) lines
+    let lines = alignLines TokenKind.all lines
 
     let lines = lines |> Array.map Line.toString
     String.Join("\n", lines)
@@ -219,13 +197,11 @@ let alignAll (x : string) : string =
 let realignAll (x : string) : string =
     let lines = x.Split('\n') |> Array.map Line.ofString
 
-    let maxLength = lines |> Array.fold (fun acc x -> max acc x.Length) 0
-
     let lines =
         TokenKind.all
-        |> Array.fold (fun acc a -> unalignLines 0 maxLength a acc) lines
+        |> Array.fold (fun acc a -> unalignLines a acc) lines
 
-    let lines = alignLines (TokenKind.all (*|> Array.filter ((<>) Other)*)) lines
+    let lines = alignLines TokenKind.all lines
 
     let lines = lines |> Array.map Line.toString
     String.Join("\n", lines)

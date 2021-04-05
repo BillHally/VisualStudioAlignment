@@ -136,34 +136,32 @@ module AlignByOther =
 let ``Alignment.align, when passed a substring, aligns the lines it is passed at every occurrence of that substring`` (before : string) (substring : string) (after : string) =
     let actual = Alignment.align substring before
 
-    printfn $"Before  :\n012345678901234567890\n{before}"
-    printfn $"Actual  :\n012345678901234567890\n{actual}"
-    printfn $"Expected:\n012345678901234567890\n{after}"
+    //printfn "0123456789012345678901234567890"
+    //printfn $"Before  :\n012345678901234567890\n{before}"
+    //printfn $"Actual  :\n012345678901234567890\n{actual}"
+    //printfn $"Expected:\n012345678901234567890\n{after}"
 
     actual |> shouldEqual after
 
-[<TestCase(NoAlignmentRequired.Empty         ,  0, 50, "=", NoAlignmentRequired.Empty         , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired) + "." + (nameof NoAlignmentRequired.Empty         ))>]
-[<TestCase(NoAlignmentRequired.OneLine       ,  0, 50, "=", NoAlignmentRequired.OneLine       , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired) + "." + (nameof NoAlignmentRequired.OneLine       ))>]
-[<TestCase(NoAlignmentRequired.WhiteSpaceOnly,  0, 50, "=", NoAlignmentRequired.WhiteSpaceOnly, TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired) + "." + (nameof NoAlignmentRequired.WhiteSpaceOnly))>]
-[<TestCase(AlignByEquals.NotContainingChar   ,  0, 50, "=", AlignByEquals.NotContainingChar   , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.NotContainingChar   ))>]
-[<TestCase(AlignByEquals.Aligned00           ,  0, 50, "=", AlignByEquals.Unaligned00         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned00           ))>]
-[<TestCase(AlignByEquals.Aligned01           ,  0, 50, "=", AlignByEquals.Unaligned01         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned01           ))>]
-[<TestCase(AlignByEquals.Aligned02           ,  0, 50, "=", AlignByEquals.Unaligned02         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned02           ))>]
-[<TestCase(AlignByEquals.Aligned03           ,  0, 50, "=", AlignByEquals.Unaligned03         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned03           ))>]
-[<TestCase(AlignByEquals.Aligned04           ,  0, 50, "=", AlignByEquals.Unaligned04         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned04           ))>]
-[<TestCase(AlignByComma.Comma_A_00_00_08     ,  0,  8, ",", AlignByComma.Comma_U_00           , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_00_08     ))>]
-[<TestCase(AlignByComma.Comma_A_00_00_16     ,  0, 16, ",", AlignByComma.Comma_U_00           , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_00_16     ))>]
-[<TestCase(AlignByComma.Comma_A_00_08_16     ,  8, 16, ",", AlignByComma.Comma_U_00           , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_08_16     ))>]
-let ``Alignment.unalign, unaligns the lines it is passed from after the indent to the end of the line``
-    (before : string) (startIndex : int) (endIndex : int) (s : string) (after : string) =
-    printfn "0123456789012345678901234567890"
-    before.Split('\n') |> Array.iter (fun x -> printfn $"{x} (Length: {x.Length})")
+[<TestCase(NoAlignmentRequired.Empty         , "=", NoAlignmentRequired.Empty         , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired) + "." + (nameof NoAlignmentRequired.Empty         ))>]
+[<TestCase(NoAlignmentRequired.OneLine       , "=", NoAlignmentRequired.OneLine       , TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired) + "." + (nameof NoAlignmentRequired.OneLine       ))>]
+[<TestCase(NoAlignmentRequired.WhiteSpaceOnly, "=", NoAlignmentRequired.WhiteSpaceOnly, TestName = "Alignment.unalign: " + (nameof NoAlignmentRequired) + "." + (nameof NoAlignmentRequired.WhiteSpaceOnly))>]
+[<TestCase(AlignByEquals.NotContainingChar   , "=", AlignByEquals.NotContainingChar   , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.NotContainingChar   ))>]
+[<TestCase(AlignByEquals.Aligned00           , "=", AlignByEquals.Unaligned00         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned00           ))>]
+[<TestCase(AlignByEquals.Aligned01           , "=", AlignByEquals.Unaligned01         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned01           ))>]
+[<TestCase(AlignByEquals.Aligned02           , "=", AlignByEquals.Unaligned02         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned02           ))>]
+[<TestCase(AlignByEquals.Aligned03           , "=", AlignByEquals.Unaligned03         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned03           ))>]
+[<TestCase(AlignByEquals.Aligned04           , "=", AlignByEquals.Unaligned04         , TestName = "Alignment.unalign: " + (nameof AlignByEquals      ) + "." + (nameof AlignByEquals.Aligned04           ))>]
+[<TestCase(AlignByComma.Comma_A_00_00_08     , ",", AlignByComma.Comma_U_00           , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_00_08     ))>]
+[<TestCase(AlignByComma.Comma_A_00_00_16     , ",", AlignByComma.Comma_U_00           , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_00_16     ))>]
+[<TestCase(AlignByComma.Comma_A_00_08_16     , ",", AlignByComma.Comma_U_00           , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_08_16     ))>]
+let ``Alignment.unalign, unaligns the lines it is passed from after the indent to the end of the line`` (before : string) (s : string) (after : string) =
+    let actual = before |> Alignment.unalign s
 
-    let actual = before |> Alignment.unalign startIndex endIndex s
-
-    printfn $"Before  :\n012345678901234567890\n{before}"
-    printfn $"Actual  :\n012345678901234567890\n{actual}"
-    printfn $"Expected:\n012345678901234567890\n{after}"
+    //printfn "0123456789012345678901234567890"
+    //printfn $"Before  :\n012345678901234567890\n{before}"
+    //printfn $"Actual  :\n012345678901234567890\n{actual}"
+    //printfn $"Expected:\n012345678901234567890\n{after}"
 
     actual |> shouldEqual after
 
@@ -285,9 +283,11 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned11))>]
 let ``Alignment.realignAll, always removes excess whitespace and aligns by all required sub-strings`` (before : string) (after : string) =
     let actual = Alignment.realignAll before
-    printfn $"Before  :\n012345678901234567890\n{before}"
-    printfn $"Actual  :\n012345678901234567890\n{actual}"
-    printfn $"Expected:\n012345678901234567890\n{after}"
+
+    //printfn "0123456789012345678901234567890"
+    //printfn $"Before  :\n012345678901234567890\n{before}"
+    //printfn $"Actual  :\n012345678901234567890\n{actual}"
+    //printfn $"Expected:\n012345678901234567890\n{after}"
 
     actual |> shouldEqual after
 

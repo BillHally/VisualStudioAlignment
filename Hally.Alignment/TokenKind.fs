@@ -27,11 +27,11 @@ type Token =
 
 type Line =
     {
-        Tokens : Token[]
+        Tokens : Token list
     }
 
     member this.Length =
-        match this.Tokens |> Array.tryLast with
+        match this.Tokens |> List.tryLast with
         | Some x -> x.Last + 1
         | None   -> 0
 
@@ -87,7 +87,7 @@ module Line =
     let ofString (text : string) : Line =
         if text.Length = 0 then
             {
-                Tokens = [||]
+                Tokens = []
             }
         else
             let tokens = ResizeArray<Token>()
@@ -106,11 +106,9 @@ module Line =
                     | Eol ->
                         match start with
                         | None ->
-                            //printfn $"Eol:A:i:{i}"
                             start <- Some i
                             None
                         | Some x ->
-                            //printfn $"Eol:B:i:{i}"
                             start <- Some i
                             Some (x, (i - 1))
                     | NotWhitespace ->
@@ -128,7 +126,6 @@ module Line =
 
                 match current with
                 | Some (start, last) ->
-                    //printfn $"Current:C:{start}-{last}"
                     let v = text.[start..last]
                     {
                         Kind  = TokenKind.ofString v
@@ -144,7 +141,6 @@ module Line =
             | Some start ->
                 let last = text.Length - 1
                 let v = text.[start..last]
-                //printfn $"D: Start/Last:{start}-{last}"
                 {
                     Kind  = TokenKind.ofString v
                     Value = v
@@ -181,7 +177,7 @@ module Line =
                 |> tokens.Add
 
             {
-                Tokens = Array.ofSeq tokens
+                Tokens = List.ofSeq tokens
             }
 
     /// Gets the next index for the given token kind.
@@ -189,9 +185,6 @@ module Line =
     /// However, if aligning either Comma or Other, we don't want to align to tokens on different sides of a token
     /// which is neither - so only consider tokens which have not been preceded by something else.
     let getNextIndex (startIndex : int) (line : Line) tk : int =
-        //printfn "0123456789012345678901234567890"
-        //printfn $"{line}"
-
         let rec commaOrOtherLoop xs =
             match xs with
             | [] -> -1
@@ -211,10 +204,10 @@ module Line =
 
         match tk with
         | Comma
-        | Other -> commaOrOtherLoop (line.Tokens |> List.ofArray)
+        | Other -> commaOrOtherLoop line.Tokens
         | _ ->
             line.Tokens
-            |> Seq.tryFind (fun t -> t.Kind = tk && t.Start >= startIndex)
+            |> List.tryFind (fun t -> t.Kind = tk && t.Start >= startIndex)
             |> function
                 | Some t -> t.Start
                 | None   -> -1
@@ -225,11 +218,9 @@ module Line =
     let toString (x : Line) : string =
         let sb = StringBuilder(x.Length)
         let mutable current = 0
-        //printfn $"toString:Line:{x}"
 
         for t in x.Tokens do
             // Add padding
-            //printfn $"current:{current} t.Start:{t.Start}"
             sb.Append(String(' ', t.Start - current)) |> ignore
 
             // Add the token
