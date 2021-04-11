@@ -355,3 +355,37 @@ let ``Line.ofString >> Line.toString roundtrips correctly`` (x : string) =
     |> Line.ofString
     |> Line.toString
     |> shouldEqual x
+
+module RealignToFirstLine =
+    let [<Literal>] Unaligned00 = """    <KeyBinding guid="guidCmdSet" id="UnalignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_1" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "[" -->
+    <KeyBinding guid="guidCmdSet" id="AlignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_4" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "]" -->
+    <KeyBinding guid="guidCmdSet" id="AlignExtendedCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_6" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "'" -->
+    <KeyBinding guid="guidCmdSet" id="RealignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_3" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "#" -->
+    <KeyBinding guid="guidCmdSet" id="RealignExtendedCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_7" mod1="Control Alt" />
+"""
+
+    let [<Literal>] Aligned00 = """    <KeyBinding guid="guidCmdSet" id="UnalignCommandId"         editor="GUID_TextEditorFactory" key1="VK_OEM_1" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "[" -->
+    <KeyBinding guid="guidCmdSet" id="AlignCommandId"           editor="GUID_TextEditorFactory" key1="VK_OEM_4" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "]" -->
+    <KeyBinding guid="guidCmdSet" id="AlignExtendedCommandId"   editor="GUID_TextEditorFactory" key1="VK_OEM_6" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "'" -->
+    <KeyBinding guid="guidCmdSet" id="RealignCommandId"         editor="GUID_TextEditorFactory" key1="VK_OEM_3" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "#" -->
+    <KeyBinding guid="guidCmdSet" id="RealignExtendedCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_7" mod1="Control Alt" />
+"""
+
+[<TestCase(RealignToFirstLine.Unaligned00, RealignToFirstLine.Aligned00, TestName = "{m}: " + (nameof RealignToFirstLine) + "." + (nameof RealignToFirstLine.Unaligned00))>]
+let ``Alignment.realignToFirstLine, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
+    let actual = Alignment.realignToFirstLineExtended before
+
+    printfn "0123456789012345678901234567890"
+    printfn $"Before  :\n012345678901234567890\n{before}"
+    printfn $"Actual  :\n012345678901234567890\n{actual}"
+    printfn $"Expected:\n012345678901234567890\n{after}"
+
+    actual |> shouldEqual after

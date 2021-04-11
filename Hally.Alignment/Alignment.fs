@@ -89,7 +89,7 @@ let getNextTokenKindToAlignBy (startIndex : int) (alignBy : TokenKind[]) (xs : L
                 | _ -> Some acc
         ) None
 
-let rec private alignFrom (startIndex : int) (alignBy : TokenKind[]) (lines : Line[]) already : Line[] =
+let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKind[]) (lines : Line[]) already : Line[] =
     match getNextTokenKindToAlignBy startIndex alignBy lines with
     | None -> lines
     | Some a ->
@@ -98,7 +98,7 @@ let rec private alignFrom (startIndex : int) (alignBy : TokenKind[]) (lines : Li
                 (fun i ->
                     let line = lines.[i]
 
-                    if startIndex >= line.Length then
+                    if startIndex >= line.Length || not (shouldAlignLine line) then
                         // Leave the current line unchanged if it's too short to contain the startIndex
                         line
                     else
@@ -131,11 +131,24 @@ let rec private alignFrom (startIndex : int) (alignBy : TokenKind[]) (lines : Li
                             }
                 )
 
-        alignFrom (a.MaxIndex + 1) alignBy updated (already |> Set.add a.Kind)
+        alignFrom shouldAlignLine (a.MaxIndex + 1) alignBy updated (already |> Set.add a.Kind)
+
+let private always (_ : Line) = true
+
+let private ifFirstTokenIsSameAs (target : Line) (x : Line) : bool =
+    match target.Tokens, x.Tokens with
+    | x::_, y::_ -> x = y
+    | _   , _    -> false
 
 let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     if lines.Length > 1 then
-        alignFrom 0 alignBy lines Set.empty
+        alignFrom always 0 alignBy lines Set.empty
+    else
+        lines
+
+let alignToFirstLine (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
+    if lines.Length > 1 then
+        alignFrom (ifFirstTokenIsSameAs lines.[0]) 0 alignBy lines Set.empty
     else
         lines
 
@@ -211,6 +224,32 @@ let realignAll (x : string) : string =
         |> Array.fold (fun acc a -> unalignLines a acc) lines
 
     let lines = alignLines TokenKind.all lines
+
+    let lines = lines |> Array.map Line.toString
+    String.Join("\n", lines)
+
+[<CompiledName("RealignToFirstLine")>]
+let realignToFirstLine (x : string) : string =
+    let lines = x.Split('\n') |> Array.map Line.ofString
+
+    let lines =
+        TokenKind.all
+        |> Array.fold (fun acc a -> unalignLines a acc) lines
+
+    let lines = alignToFirstLine TokenKind.all lines
+
+    let lines = lines |> Array.map Line.toString
+    String.Join("\n", lines)
+
+[<CompiledName("RealignToFirstLineExtended")>]
+let realignToFirstLineExtended (x : string) : string =
+    let lines = x.Split('\n') |> Array.map Line.ofString
+
+    let lines =
+        TokenKind.all
+        |> Array.fold (fun acc a -> unalignLines a acc) lines
+
+    let lines = alignToFirstLine TokenKind.allExtended lines
 
     let lines = lines |> Array.map Line.toString
     String.Join("\n", lines)

@@ -67,16 +67,7 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidCmdSet" id="UnalignCommandId" priority="0x0110" type="Button">
-        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
-        <Strings>
-          <ButtonText>&amp;Unalign Lines</ButtonText>
-        </Strings>
-      </Button>
-      <Button guid="guidCmdSet" id="AlignCommandId" priority="0x0120" type="Button">
+      <Button guid="guidCmdSet" id="AlignCommandId" priority="0x0110" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
@@ -85,13 +76,13 @@
           <ButtonText>&amp;Align Lines</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidCmdSet" id="AlignExtendedCommandId" priority="0x0130" type="Button">
+      <Button guid="guidCmdSet" id="AlignExtendedCommandId" priority="0x0120" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Align Lines (Include &amp;Extended Tokens)</ButtonText>
+          <ButtonText>Align Lines (&amp;Include Extended Tokens)</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="RealignCommandId" priority="0x0130" type="Button">
@@ -109,7 +100,34 @@
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Realign Lines (Include Extended &amp;Tokens)</ButtonText>
+          <ButtonText>Realign Lines (Include &amp;Extended Tokens)</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="AlignToFirstLineCommandId" priority="0x0150" type="Button">
+        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Align Lines to &amp;First Line</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="AlignToFirstLineExtendedCommandId" priority="0x0160" type="Button">
+        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Align Lines to First Line (Include Extended &amp;Tokens)</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="UnalignCommandId" priority="0x0170" type="Button">
+        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Unalign Lines</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -126,42 +144,60 @@
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="guidCmdSet" id="UnalignCommandId" priority="0x0010">
+    <CommandPlacement guid="guidCmdSet" id="AlignCommandId" priority="0x0010">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
     </CommandPlacement>
-    <CommandPlacement guid="guidCmdSet" id="AlignCommandId" priority="0x0020">
+    <CommandPlacement guid="guidCmdSet" id="AlignExtendedCommandId" priority="0x0020">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
     </CommandPlacement>
-    <CommandPlacement guid="guidCmdSet" id="AlignExtendedCommandId" priority="0x0030">
+    <CommandPlacement guid="guidCmdSet" id="RealignCommandId" priority="0x0030">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
     </CommandPlacement>
-    <CommandPlacement guid="guidCmdSet" id="RealignCommandId" priority="0x0040">
+    <CommandPlacement guid="guidCmdSet" id="RealignExtendedCommandId" priority="0x0040">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
     </CommandPlacement>
-    <CommandPlacement guid="guidCmdSet" id="RealignExtendedCommandId" priority="0x0050">
+    <CommandPlacement guid="guidCmdSet" id="AlignToFirstLineCommandId" priority="0x0050">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
+    </CommandPlacement>
+    <CommandPlacement guid="guidCmdSet" id="AlignToFirstLineExtendedCommandId" priority="0x0060">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
+    </CommandPlacement>
+    <CommandPlacement guid="guidCmdSet" id="UnalignCommandId" priority="0x0070">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
     </CommandPlacement>
   </CommandPlacements>
 
   <KeyBindings>
-    <!-- Ctrl + Alt + ";" -->
-    <KeyBinding guid="guidCmdSet" id="UnalignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_1" mod1="Control Alt" />
-    <!-- Ctrl + Alt + "[" -->
-    <KeyBinding guid="guidCmdSet" id="AlignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_4" mod1="Control Alt" />
-    <!-- Ctrl + Alt + "]" -->
-    <KeyBinding guid="guidCmdSet" id="AlignExtendedCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_6" mod1="Control Alt" />
-    <!-- Ctrl + Alt + "'" -->
-    <KeyBinding guid="guidCmdSet" id="RealignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_3" mod1="Control Alt" />
-    <!-- Ctrl + Alt + "#" -->
-    <KeyBinding guid="guidCmdSet" id="RealignExtendedCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_7" mod1="Control Alt" />
+    <!-- "-" VK_OEM_MINUS  -->
+    <!-- "=" VK_OEM_PLUS   -->
+
+    <!-- "[" VK_OEM_4      -->
+    <!-- "]" VK_OEM_6      -->
+
+    <!-- ";" VK_OEM_1      -->
+    <!-- "'" VK_OEM_3      -->
+    <!-- "#" VK_OEM_7      -->
+
+    <!-- "." VK_OEM_PERIOD -->
+    <!-- "/" VK_OEM_2      -->
+
+    <KeyBinding guid="guidCmdSet" id="AlignCommandId"                    editor="GUID_TextEditorFactory" key1="VK_OEM_MINUS" mod1="Shift Control Alt" />
+    <KeyBinding guid="guidCmdSet" id="AlignExtendedCommandId"            editor="GUID_TextEditorFactory" key1="VK_OEM_PLUS"  mod1="Shift Control Alt" />
+    <KeyBinding guid="guidCmdSet" id="RealignCommandId"                  editor="GUID_TextEditorFactory" key1="VK_OEM_4"     mod1="Shift Control Alt" />
+    <KeyBinding guid="guidCmdSet" id="RealignExtendedCommandId"          editor="GUID_TextEditorFactory" key1="VK_OEM_6"     mod1="Shift Control Alt" />
+    <KeyBinding guid="guidCmdSet" id="AlignToFirstLineCommandId"         editor="GUID_TextEditorFactory" key1="VK_OEM_3"     mod1="Shift Control Alt" />
+    <KeyBinding guid="guidCmdSet" id="AlignToFirstLineExtendedCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_7"     mod1="Shift Control Alt" />
+    <KeyBinding guid="guidCmdSet" id="UnalignCommandId"                  editor="GUID_TextEditorFactory" key1="VK_OEM_2"     mod1="Shift Control Alt" />
   </KeyBindings>
 
   <UsedCommands>
-    <UsedCommand guid="guidCmdSet" id="UnalignCommandId"         />
-    <UsedCommand guid="guidCmdSet" id="AlignCommandId"           />
-    <UsedCommand guid="guidCmdSet" id="AlignExtendedCommandId"   />
-    <UsedCommand guid="guidCmdSet" id="RealignCommandId"         />
-    <UsedCommand guid="guidCmdSet" id="RealignExtendedCommandId" />
+    <UsedCommand guid="guidCmdSet" id="AlignCommandId"                    />
+    <UsedCommand guid="guidCmdSet" id="AlignExtendedCommandId"            />
+    <UsedCommand guid="guidCmdSet" id="RealignCommandId"                  />
+    <UsedCommand guid="guidCmdSet" id="RealignExtendedCommandId"          />
+    <UsedCommand guid="guidCmdSet" id="AlignToFirstLineCommandId"         />
+    <UsedCommand guid="guidCmdSet" id="AlignToFirstLineExtendedCommandId" />
+    <UsedCommand guid="guidCmdSet" id="UnalignCommandId"                  />
   </UsedCommands>
 
   <Symbols>
@@ -182,11 +218,13 @@
       <IDSymbol name="AlignmentMenu" value="0x2000" />
 
       <!-- Command IDs -->
-      <IDSymbol name="UnalignCommandId"         value="0x2110" />
-      <IDSymbol name="AlignCommandId"           value="0x2120" />
-      <IDSymbol name="AlignExtendedCommandId"   value="0x2130" />
-      <IDSymbol name="RealignCommandId"         value="0x2140" />
-      <IDSymbol name="RealignExtendedCommandId" value="0x2150" />
+      <IDSymbol name="AlignCommandId"                    value="0x2110" />
+      <IDSymbol name="AlignExtendedCommandId"            value="0x2120" />
+      <IDSymbol name="RealignCommandId"                  value="0x2130" />
+      <IDSymbol name="RealignExtendedCommandId"          value="0x2140" />
+      <IDSymbol name="AlignToFirstLineCommandId"         value="0x2150" />
+      <IDSymbol name="AlignToFirstLineExtendedCommandId" value="0x2160" />
+      <IDSymbol name="UnalignCommandId"                  value="0x2170" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>
