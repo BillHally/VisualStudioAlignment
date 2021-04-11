@@ -1,5 +1,4 @@
-﻿using System;
-using System.ComponentModel.Composition;
+﻿using System.ComponentModel.Composition;
 using System.ComponentModel.Design;
 using System.Globalization;
 using System.Threading;
@@ -22,75 +21,10 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 using Task = System.Threading.Tasks.Task;
+using System;
 
 namespace Hally.Alignment.VisualStudio
 {
-    public static class AlignLines
-    {
-        public static void ProcessSelectedLines(ITextView textView, IEditorOperations editorOperations, Func<string, string> align)
-        {
-            var selection = textView.Selection;
-
-            if (!selection.IsActive)
-            {
-                // TODO: check whether this test is necessary (i.e. if false, is this method ever invoked?)
-                return;
-            }
-
-            if (selection.IsEmpty)
-            {
-                // TODO: do something sensible when there's no selection
-                return;
-            }
-
-            if (selection.Mode == TextSelectionMode.Box)
-            {
-                // TODO: do something sensible when there's a Box selection
-                return;
-            }
-
-            var isReversed = selection.IsReversed;
-            var selectedSpan = selection.SelectedSpans[0]; // When it's not a Box selection there's only 1 selected span
-            var start = selectedSpan.Span.Start;
-
-#if DEBUG
-            try
-            {
-#endif
-                // If necessary, extend the selection to the start of the first line of the selection, so that columns
-                // of the all the lines in the selection match up
-                var textLine = selection.Start.Position.GetContainingLine();
-                if (textLine.Start.Position != start)
-                {
-                    selectedSpan = new SnapshotSpan(selectedSpan.Snapshot, textLine.Start.Position, start - textLine.Start.Position + selectedSpan.Length);
-                    start = textLine.Start.Position;
-                    textView.Selection.Select(selectedSpan, isReversed);
-                }
-
-                // Realign the selected text and replace the current selection with the result
-                var text = selectedSpan.GetText();
-                var updatedText = align.Invoke(text);
-                var updatedSnapshot = textView.TextBuffer.Replace(selectedSpan, updatedText);
-
-                // Redo the original selection, expanded or reduced to the extent of the updated text
-                var updatedSnapshotSpan = new SnapshotSpan(updatedSnapshot, start, updatedText.Length);
-                textView.Selection.Select(updatedSnapshotSpan, isReversed);
-
-                // If the original selection had the caret at the start, move it back there now (the text replacement leaves the caret at the end,
-                // and redoing the selection doesn't affect the caret)
-                if (isReversed)
-                {
-                    textView.Caret.MoveTo(updatedSnapshotSpan.Start);
-                }
-#if DEBUG
-            }
-            catch (Exception ex) {
-                textView.TextBuffer.Insert(selectedSpan.Span.Start, ex.ToString());
-            }
-#endif
-        }
-    }
-
     public class AlignArgs                      : EditorCommandArgs { public AlignArgs                     (ITextView v, ITextBuffer b) : base(v, b) { } }
     public class AlignExtendedArgs              : EditorCommandArgs { public AlignExtendedArgs             (ITextView v, ITextBuffer b) : base(v, b) { } }
     public class RealignArgs                    : EditorCommandArgs { public RealignArgs                   (ITextView v, ITextBuffer b) : base(v, b) { } }
@@ -140,185 +74,110 @@ namespace Hally.Alignment.VisualStudio
         internal CommandBindingDefinition unalignBinding;
     }
 
-    [Export(typeof(ICommandHandler))]
-    [ContentType("text")]
-    [Name(nameof(AlignCommandHandler))]
-    public class AlignCommandHandler : ICommandHandler<AlignArgs>
+    public abstract class AlignmentCommandHandler<TEditorCommandArgs> : ICommandHandler<TEditorCommandArgs> where TEditorCommandArgs : EditorCommandArgs
     {
-        public string DisplayName => "Align Selected Lines";
+        protected AlignmentCommandHandler(string displayName, Func<string, string> align)
+        {
+            DisplayName = displayName;
+            this.align = align;
+        }
 
         [Import]
         private IEditorOperationsFactoryService EditorOperations = null;
+        private readonly Func<string, string> align;
 
-        public CommandState GetCommandState(AlignArgs args)
+        public string DisplayName { get; }
+
+        public CommandState GetCommandState(TEditorCommandArgs args)
         {
             return args.TextView.Selection.IsEmpty ? CommandState.Unavailable : CommandState.Available;
         }
 
-        public bool ExecuteCommand(AlignArgs args, CommandExecutionContext context)
+        public bool ExecuteCommand(TEditorCommandArgs args, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: false, description: "Aligning selected lines"))
             {
-                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), Alignment.AlignAll);
+                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), align);
             }
 
             return true;
+        }
+    }
+
+    [Export(typeof(ICommandHandler))]
+    [ContentType("text")]
+    [Name(nameof(AlignCommandHandler))]
+    public class AlignCommandHandler : AlignmentCommandHandler<AlignArgs>
+    {
+        AlignCommandHandler()
+            : base("Align Selected Lines", Alignment.AlignAll)
+        {
         }
     }
 
     [Export(typeof(ICommandHandler))]
     [ContentType("text")]
     [Name(nameof(AlignExtendedCommandHandler))]
-    public class AlignExtendedCommandHandler : ICommandHandler<AlignExtendedArgs>
+    public class AlignExtendedCommandHandler : AlignmentCommandHandler<AlignExtendedArgs>
     {
-        public string DisplayName => "Align Selected Lines (Including Extended Tokens)";
-
-        [Import]
-        private IEditorOperationsFactoryService EditorOperations = null;
-
-        public CommandState GetCommandState(AlignExtendedArgs args)
+        public AlignExtendedCommandHandler()
+            : base("Align Selected Lines (Including Extended Tokens)", Alignment.AlignAllExtended)
         {
-            return args.TextView.Selection.IsEmpty ? CommandState.Unavailable : CommandState.Available;
-        }
-
-        public bool ExecuteCommand(AlignExtendedArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: false, description: "Aligning selected lines (including extended tokens)"))
-            {
-                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), Alignment.AlignAllExtended);
-            }
-
-            return true;
         }
     }
 
     [Export(typeof(ICommandHandler))]
     [ContentType("text")]
     [Name(nameof(RealignCommandHandler))]
-    public class RealignCommandHandler : ICommandHandler<RealignArgs>
+    public class RealignCommandHandler : AlignmentCommandHandler<RealignArgs>
     {
-        public string DisplayName => "Realign Selected Lines";
-
-        [Import]
-        private IEditorOperationsFactoryService EditorOperations = null;
-
-        public CommandState GetCommandState(RealignArgs args)
+        public RealignCommandHandler()
+            : base("Realign Selected Lines", Alignment.RealignAll)
         {
-            return args.TextView.Selection.IsEmpty ? CommandState.Unavailable : CommandState.Available;
-        }
-
-        public bool ExecuteCommand(RealignArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: false, description: "Realigning selected lines"))
-            {
-                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), Alignment.RealignAll);
-            }
-
-            return true;
         }
     }
 
     [Export(typeof(ICommandHandler))]
     [ContentType("text")]
     [Name(nameof(RealignExtendedCommandHandler))]
-    public class RealignExtendedCommandHandler : ICommandHandler<RealignExtendedArgs>
+    public class RealignExtendedCommandHandler : AlignmentCommandHandler<RealignExtendedArgs>
     {
-        public string DisplayName => "Realign Selected Lines (Extended)";
-
-        [Import]
-        private IEditorOperationsFactoryService EditorOperations = null;
-
-        public CommandState GetCommandState(RealignExtendedArgs args)
+        public RealignExtendedCommandHandler()
+            : base("Realign Selected Lines (Extended)", Alignment.RealignAllExtended)
         {
-            return args.TextView.Selection.IsEmpty ? CommandState.Unavailable : CommandState.Available;
-        }
-
-        public bool ExecuteCommand(RealignExtendedArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: false, description: "Realigning selected lines (extended)"))
-            {
-                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), Alignment.RealignAllExtended);
-            }
-
-            return true;
         }
     }
 
     [Export(typeof(ICommandHandler))]
     [ContentType("text")]
     [Name(nameof(RealignToFirstLineCommandHandler))]
-    public class RealignToFirstLineCommandHandler : ICommandHandler<RealignToFirstLineArgs>
+    public class RealignToFirstLineCommandHandler : AlignmentCommandHandler<RealignToFirstLineArgs>
     {
-        public string DisplayName => "Realign Selected Lines to First Line";
-
-        [Import]
-        private IEditorOperationsFactoryService EditorOperations = null;
-
-        public CommandState GetCommandState(RealignToFirstLineArgs args)
+        public RealignToFirstLineCommandHandler()
+            : base("Realign Selected Lines to First Line", Alignment.RealignToFirstLine)
         {
-            return args.TextView.Selection.IsEmpty ? CommandState.Unavailable : CommandState.Available;
-        }
-
-        public bool ExecuteCommand(RealignToFirstLineArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: false, description: "Realigning selected lines to first line"))
-            {
-                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), Alignment.RealignToFirstLine);
-            }
-
-            return true;
         }
     }
 
     [Export(typeof(ICommandHandler))]
     [ContentType("text")]
     [Name(nameof(RealignToFirstLineExtendedCommandHandler))]
-    public class RealignToFirstLineExtendedCommandHandler : ICommandHandler<RealignToFirstLineExtendedArgs>
+    public class RealignToFirstLineExtendedCommandHandler : AlignmentCommandHandler<RealignToFirstLineExtendedArgs>
     {
-        public string DisplayName => "Realign Selected Lines to First Line (Including Extended Tokens)";
-
-        [Import]
-        private IEditorOperationsFactoryService EditorOperations = null;
-
-        public CommandState GetCommandState(RealignToFirstLineExtendedArgs args)
+        public RealignToFirstLineExtendedCommandHandler()
+            : base("Realign Selected Lines to First Line (Including Extended Tokens)", Alignment.RealignToFirstLineExtended)
         {
-            return args.TextView.Selection.IsEmpty ? CommandState.Unavailable : CommandState.Available;
-        }
-
-        public bool ExecuteCommand(RealignToFirstLineExtendedArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: false, description: "Realigning selected lines to first line (including extended tokens)"))
-            {
-                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), Alignment.RealignToFirstLineExtended);
-            }
-
-            return true;
         }
     }
 
     [Export(typeof(ICommandHandler))]
     [ContentType("text")]
     [Name(nameof(UnalignCommandHandler))]
-    public class UnalignCommandHandler : ICommandHandler<UnalignArgs>
+    public class UnalignCommandHandler : AlignmentCommandHandler<UnalignArgs>
     {
-        public string DisplayName => "Unalign Selected Lines";
-
-        [Import]
-        private IEditorOperationsFactoryService EditorOperations = null;
-
-        public CommandState GetCommandState(UnalignArgs args)
+        public UnalignCommandHandler()
+            : base("Unalign Selected Lines", Alignment.UnalignAll)
         {
-            return args.TextView.Selection.IsEmpty ? CommandState.Unavailable : CommandState.Available;
-        }
-
-        public bool ExecuteCommand(UnalignArgs args, CommandExecutionContext context)
-        {
-            using (context.OperationContext.AddScope(allowCancellation: false, description: "Realigning selected lines"))
-            {
-                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), Alignment.UnalignAll);
-            }
-
-            return true;
         }
     }
 }

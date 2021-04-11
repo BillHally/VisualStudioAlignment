@@ -383,9 +383,9 @@ module RealignToFirstLine =
 let ``Alignment.realignToFirstLine, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual = Alignment.realignToFirstLineExtended before
 
-    printfn "0123456789012345678901234567890"
-    printfn $"Before  :\n012345678901234567890\n{before}"
-    printfn $"Actual  :\n012345678901234567890\n{actual}"
-    printfn $"Expected:\n012345678901234567890\n{after}"
+    //printfn "0123456789012345678901234567890"
+    //printfn $"Before  :\n012345678901234567890\n{before}"
+    //printfn $"Actual  :\n012345678901234567890\n{actual}"
+    //printfn $"Expected:\n012345678901234567890\n{after}"
 
     actual |> shouldEqual after
