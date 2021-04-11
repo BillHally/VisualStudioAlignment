@@ -260,28 +260,60 @@ module ComplexAlignmentRequired =
 """
 
     // Re-align everything, including non-special cased non-whitespace substrings
-    let [<Literal>] Realigned11 = """
+    let [<Literal>] Realigned11_A = """
             D  = efg   7
             Hi = jklmn 8    90
             O  = pqr   1000 100 1
 """
 
-[<TestCase(NoAlignmentRequired.Empty           , NoAlignmentRequired.Empty           , TestName = "Alignment.realignAll " + (nameof NoAlignmentRequired.Empty           ))>]
-[<TestCase(NoAlignmentRequired.OneLine         , NoAlignmentRequired.OneLine         , TestName = "Alignment.realignAll " + (nameof NoAlignmentRequired.OneLine         ))>]
-[<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , NoAlignmentRequired.WhiteSpaceOnly  , TestName = "Alignment.realignAll " + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
-[<TestCase(AlignByEquals.Unaligned00           , AlignByEquals.Aligned00             , TestName = "Alignment.realignAll " + (nameof AlignByEquals.Unaligned00           ))>]
-[<TestCase(AlignByEquals.Unaligned01           , AlignByEquals.Aligned01             , TestName = "Alignment.realignAll " + (nameof AlignByEquals.Unaligned01           ))>]
-[<TestCase(AlignByEquals.Unaligned02           , AlignByEquals.Aligned02             , TestName = "Alignment.realignAll " + (nameof AlignByEquals.Unaligned02           ))>]
-[<TestCase(AlignByEquals.Unaligned03           , AlignByEquals.Aligned03             , TestName = "Alignment.realignAll " + (nameof AlignByEquals.Unaligned03           ))>]
-[<TestCase(AlignByEquals.Unaligned04           , AlignByEquals.Aligned04             , TestName = "Alignment.realignAll " + (nameof AlignByEquals.Unaligned04           ))>]
-[<TestCase(ComplexAlignmentRequired.Unaligned05, ComplexAlignmentRequired.Realigned05, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned05))>]
-[<TestCase(ComplexAlignmentRequired.Unaligned06, ComplexAlignmentRequired.Realigned06, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned06))>]
-[<TestCase(ComplexAlignmentRequired.Unaligned07, ComplexAlignmentRequired.Realigned07, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned07))>]
-[<TestCase(ComplexAlignmentRequired.Unaligned08, ComplexAlignmentRequired.Realigned08, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned08))>]
-[<TestCase(ComplexAlignmentRequired.Unaligned09, ComplexAlignmentRequired.Realigned09, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned09))>]
-[<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned10))>]
-[<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11, TestName = "Alignment.realignAll " + (nameof ComplexAlignmentRequired.Unaligned11))>]
-let ``Alignment.realignAll, always removes excess whitespace and aligns by all required sub-strings`` (before : string) (after : string) =
+    // Re-align everything, excluding non-special cased non-whitespace substrings
+    let [<Literal>] Realigned11_B = """
+            D  = efg 7
+            Hi = jklmn 8 90
+            O  = pqr 1000 100 1
+"""
+
+[<TestCase(NoAlignmentRequired.Empty           , NoAlignmentRequired.Empty             , TestName = "{m}: " + (nameof NoAlignmentRequired.Empty           ))>]
+[<TestCase(NoAlignmentRequired.OneLine         , NoAlignmentRequired.OneLine           , TestName = "{m}: " + (nameof NoAlignmentRequired.OneLine         ))>]
+[<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , NoAlignmentRequired.WhiteSpaceOnly    , TestName = "{m}: " + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
+[<TestCase(AlignByEquals.Unaligned00           , AlignByEquals.Aligned00               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned00           ))>]
+[<TestCase(AlignByEquals.Unaligned01           , AlignByEquals.Aligned01               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned01           ))>]
+[<TestCase(AlignByEquals.Unaligned02           , AlignByEquals.Aligned02               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned02           ))>]
+[<TestCase(AlignByEquals.Unaligned03           , AlignByEquals.Aligned03               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned03           ))>]
+[<TestCase(AlignByEquals.Unaligned04           , AlignByEquals.Aligned04               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned04           ))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned05, ComplexAlignmentRequired.Realigned05  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned05))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned06, ComplexAlignmentRequired.Realigned06  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned06))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned07, ComplexAlignmentRequired.Realigned07  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned07))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned08, ComplexAlignmentRequired.Realigned08  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned08))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned09, ComplexAlignmentRequired.Realigned09  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned09))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned10))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11_A, TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned11))>]
+let ``Alignment.realignAllExtended, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
+    let actual = Alignment.realignAllExtended before
+
+    //printfn "0123456789012345678901234567890"
+    //printfn $"Before  :\n012345678901234567890\n{before}"
+    //printfn $"Actual  :\n012345678901234567890\n{actual}"
+    //printfn $"Expected:\n012345678901234567890\n{after}"
+
+    actual |> shouldEqual after
+
+[<TestCase(NoAlignmentRequired.Empty           , NoAlignmentRequired.Empty             , TestName = "{m}: " + (nameof NoAlignmentRequired.Empty           ))>]
+[<TestCase(NoAlignmentRequired.OneLine         , NoAlignmentRequired.OneLine           , TestName = "{m}: " + (nameof NoAlignmentRequired.OneLine         ))>]
+[<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , NoAlignmentRequired.WhiteSpaceOnly    , TestName = "{m}: " + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
+[<TestCase(AlignByEquals.Unaligned00           , AlignByEquals.Aligned00               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned00           ))>]
+[<TestCase(AlignByEquals.Unaligned01           , AlignByEquals.Aligned01               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned01           ))>]
+[<TestCase(AlignByEquals.Unaligned02           , AlignByEquals.Aligned02               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned02           ))>]
+[<TestCase(AlignByEquals.Unaligned03           , AlignByEquals.Aligned03               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned03           ))>]
+[<TestCase(AlignByEquals.Unaligned04           , AlignByEquals.Aligned04               , TestName = "{m}: " + (nameof AlignByEquals.Unaligned04           ))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned05, ComplexAlignmentRequired.Realigned05  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned05))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned06, ComplexAlignmentRequired.Realigned06  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned06))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned07, ComplexAlignmentRequired.Realigned07  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned07))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned08, ComplexAlignmentRequired.Realigned08  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned08))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned09, ComplexAlignmentRequired.Realigned09  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned09))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned10))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11_B, TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned11))>]
+let ``Alignment.realignAll, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual = Alignment.realignAll before
 
     //printfn "0123456789012345678901234567890"

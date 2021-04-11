@@ -24,7 +24,7 @@
 
   <!--The Commands section is where commands, menus, and menu groups are defined.
       This section uses a Guid to identify the package that provides the command defined inside it. -->
-  <Commands package="guidAlignmentVisualStudioPackage">
+  <Commands package="guidPackage">
     <!-- Inside this section we have different sub-sections: one for the menus, another
     for the menu groups, one for the buttons (the actual commands), one for the combos
     and the last one for the bitmaps used. Each element is identified by a command id that
@@ -34,11 +34,11 @@
     with command ids defined by other packages. -->
 
     <Menus>
-      <Menu guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignmentMenu" priority="0x0600" type="Menu">
-        <Parent guid="guidAlignmentVisualStudioPackageCmdSet" id="EditMenuGroup" />
+      <Menu guid="guidCmdSet" id="AlignmentMenu" priority="0x0600" type="Menu">
+        <Parent guid="guidCmdSet" id="EditMenuGroup" />
         <CommandFlag>AlwaysCreate</CommandFlag>
         <Strings>
-          <ButtonText>Code alignment</ButtonText>
+          <ButtonText>Code A&amp;lignment</ButtonText>
         </Strings>
       </Menu>
     </Menus>
@@ -48,11 +48,11 @@
          group as the part of a menu contained between two lines. The parent of a group
          must be a menu. -->
     <Groups>
-      <Group guid="guidAlignmentVisualStudioPackageCmdSet" id="EditMenuGroup" priority="0x0600">
+      <Group guid="guidCmdSet" id="EditMenuGroup" priority="0x0600">
         <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT"/>
       </Group>
-      <Group guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignmentMenuGroup" priority="0x0600">
-        <Parent guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignmentMenu"/>
+      <Group guid="guidCmdSet" id="AlignmentMenuGroup" priority="0x0600">
+        <Parent guid="guidCmdSet" id="AlignmentMenu"/>
       </Group>
     </Groups>
 
@@ -67,31 +67,49 @@
               <CommandFlag>DefaultInvisible</CommandFlag>
               <CommandFlag>DynamicVisibility</CommandFlag>
           If you do not want an image next to your command, remove the Icon node /> -->
-      <Button guid="guidAlignmentVisualStudioPackageCmdSet" id="RealignLinesCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignmentMenuGroup" />
+      <Button guid="guidCmdSet" id="UnalignCommandId" priority="0x0110" type="Button">
+        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Realign Lines</ButtonText>
+          <ButtonText>&amp;Unalign Lines</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignLinesCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignmentMenuGroup" />
+      <Button guid="guidCmdSet" id="AlignCommandId" priority="0x0120" type="Button">
+        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Align Lines</ButtonText>
+          <ButtonText>&amp;Align Lines</ButtonText>
         </Strings>
       </Button>
-      <Button guid="guidAlignmentVisualStudioPackageCmdSet" id="UnalignLinesCommandId" priority="0x0100" type="Button">
-        <Parent guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignmentMenuGroup" />
+      <Button guid="guidCmdSet" id="AlignExtendedCommandId" priority="0x0130" type="Button">
+        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
         <CommandFlag>DynamicVisibility</CommandFlag>
         <CommandFlag>DefaultDisabled</CommandFlag>
         <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
-          <ButtonText>Unalign Lines</ButtonText>
+          <ButtonText>Align Lines (Include &amp;Extended Tokens)</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="RealignCommandId" priority="0x0130" type="Button">
+        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>&amp;Realign Lines</ButtonText>
+        </Strings>
+      </Button>
+      <Button guid="guidCmdSet" id="RealignExtendedCommandId" priority="0x0140" type="Button">
+        <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
+        <CommandFlag>DynamicVisibility</CommandFlag>
+        <CommandFlag>DefaultDisabled</CommandFlag>
+        <CommandFlag>DefaultInvisible</CommandFlag>
+        <Strings>
+          <ButtonText>Realign Lines (Include Extended &amp;Tokens)</ButtonText>
         </Strings>
       </Button>
     </Buttons>
@@ -108,45 +126,67 @@
   </Commands>
 
   <CommandPlacements>
-    <CommandPlacement guid="guidAlignmentVisualStudioPackageCmdSet" id="RealignLinesCommandId" priority="0x0600">
+    <CommandPlacement guid="guidCmdSet" id="UnalignCommandId" priority="0x0010">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
     </CommandPlacement>
-    <CommandPlacement guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignLinesCommandId" priority="0x0610">
+    <CommandPlacement guid="guidCmdSet" id="AlignCommandId" priority="0x0020">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
     </CommandPlacement>
-    <CommandPlacement guid="guidAlignmentVisualStudioPackageCmdSet" id="UnalignLinesCommandId" priority="0x0620">
+    <CommandPlacement guid="guidCmdSet" id="AlignExtendedCommandId" priority="0x0030">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
+    </CommandPlacement>
+    <CommandPlacement guid="guidCmdSet" id="RealignCommandId" priority="0x0040">
+      <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
+    </CommandPlacement>
+    <CommandPlacement guid="guidCmdSet" id="RealignExtendedCommandId" priority="0x0050">
       <Parent guid="guidSHLMainMenu" id="IDM_VS_MENU_EDIT" />
     </CommandPlacement>
   </CommandPlacements>
 
   <KeyBindings>
-    <!-- Ctrl + Alt + [ -->
-    <KeyBinding guid="guidAlignmentVisualStudioPackageCmdSet" id="UnalignLinesCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_4" mod1="Control Alt" />
-    <!-- Ctrl + Alt + ] (VK_OEM_6 doesn't work - I don't know why) -->
-    <KeyBinding guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignLinesCommandId"   editor="GUID_TextEditorFactory" key1="0xDD"     mod1="Control Alt" />
-    <!-- Ctrl + Alt + ' -->
-    <KeyBinding guid="guidAlignmentVisualStudioPackageCmdSet" id="RealignLinesCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_3" mod1="Control Alt" />
+    <!-- Ctrl + Alt + ";" -->
+    <KeyBinding guid="guidCmdSet" id="UnalignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_1" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "[" -->
+    <KeyBinding guid="guidCmdSet" id="AlignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_4" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "]" -->
+    <KeyBinding guid="guidCmdSet" id="AlignExtendedCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_6" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "'" -->
+    <KeyBinding guid="guidCmdSet" id="RealignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_3" mod1="Control Alt" />
+    <!-- Ctrl + Alt + "#" -->
+    <KeyBinding guid="guidCmdSet" id="RealignExtendedCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_7" mod1="Control Alt" />
   </KeyBindings>
 
   <UsedCommands>
-    <UsedCommand guid="guidAlignmentVisualStudioPackageCmdSet" id="AlignLinesCommandId" />
+    <UsedCommand guid="guidCmdSet" id="UnalignCommandId"         />
+    <UsedCommand guid="guidCmdSet" id="AlignCommandId"           />
+    <UsedCommand guid="guidCmdSet" id="AlignExtendedCommandId"   />
+    <UsedCommand guid="guidCmdSet" id="RealignCommandId"         />
+    <UsedCommand guid="guidCmdSet" id="RealignExtendedCommandId" />
   </UsedCommands>
 
   <Symbols>
     <!-- The package guid. -->
-    <GuidSymbol name="guidAlignmentVisualStudioPackage" value="{5aaf5238-578a-4f2c-a73a-442c41d69752}" />
+    <GuidSymbol name="guidPackage" value="{5aaf5238-578a-4f2c-a73a-442c41d69752}" />
 
     <!-- The guid of the menu -->
     <GuidSymbol name="guidMenu" value="{f9b53316-d037-4010-b34d-2a59927c6792}" />
 
     <!-- The guid used to group the menu commands together -->
-    <GuidSymbol name="guidAlignmentVisualStudioPackageCmdSet" value="{7404ba69-b772-4931-8783-7d904aefa62c}">
-      <IDSymbol name="EditMenuGroup"         value="0x1000" />
-      <IDSymbol name="AlignmentMenu"         value="0x2000" />
-      <IDSymbol name="AlignmentMenuGroup"    value="0x2100" />
-      <IDSymbol name="UnalignLinesCommandId" value="0x2110" />
-      <IDSymbol name="AlignLinesCommandId"   value="0x2120" />
-      <IDSymbol name="RealignLinesCommandId" value="0x2130" />
+    <GuidSymbol name="guidCmdSet" value="{7404ba69-b772-4931-8783-7d904aefa62c}">
+
+      <!-- Menu groups -->
+      <IDSymbol name="EditMenuGroup"      value="0x1000" />
+      <IDSymbol name="AlignmentMenuGroup" value="0x2100" />
+
+      <!-- Menus -->
+      <IDSymbol name="AlignmentMenu" value="0x2000" />
+
+      <!-- Command IDs -->
+      <IDSymbol name="UnalignCommandId"         value="0x2110" />
+      <IDSymbol name="AlignCommandId"           value="0x2120" />
+      <IDSymbol name="AlignExtendedCommandId"   value="0x2130" />
+      <IDSymbol name="RealignCommandId"         value="0x2140" />
+      <IDSymbol name="RealignExtendedCommandId" value="0x2150" />
     </GuidSymbol>
   </Symbols>
 </CommandTable>

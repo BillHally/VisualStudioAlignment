@@ -193,6 +193,15 @@ let alignAll (x : string) : string =
     let lines = lines |> Array.map Line.toString
     String.Join("\n", lines)
 
+[<CompiledName("AlignAllExtended")>]
+let alignAllExtended (x : string) : string =
+    let lines = x.Split('\n') |> Array.map Line.ofString
+
+    let lines = alignLines TokenKind.allExtended lines
+
+    let lines = lines |> Array.map Line.toString
+    String.Join("\n", lines)
+
 [<CompiledName("RealignAll")>]
 let realignAll (x : string) : string =
     let lines = x.Split('\n') |> Array.map Line.ofString
@@ -202,6 +211,19 @@ let realignAll (x : string) : string =
         |> Array.fold (fun acc a -> unalignLines a acc) lines
 
     let lines = alignLines TokenKind.all lines
+
+    let lines = lines |> Array.map Line.toString
+    String.Join("\n", lines)
+
+[<CompiledName("RealignAllExtended")>]
+let realignAllExtended (x : string) : string =
+    let lines = x.Split('\n') |> Array.map Line.ofString
+
+    let lines =
+        TokenKind.all
+        |> Array.fold (fun acc a -> unalignLines a acc) lines
+
+    let lines = alignLines TokenKind.allExtended lines
 
     let lines = lines |> Array.map Line.toString
     String.Join("\n", lines)

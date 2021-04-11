@@ -50,7 +50,7 @@ module CharActivePatterns =
 
 [<RequireQualifiedAccess>]
 module TokenKind =
-    let all = [|
+    let allExtended = [|
         With
         Member
         Colon
@@ -62,13 +62,7 @@ module TokenKind =
         Other
     |]
 
-    //let getSubstring = function
-    //    | With   -> Some "member"
-    //    | Member -> Some "member"
-    //    | Colon  -> Some ":"
-    //    | Equals -> Some "="
-    //    | Comma  -> Some ","
-    //    | Other  -> None
+    let all = [| for x in allExtended do if x <> Other then x |]
 
     let ofString = function
         | "with"   -> With
