@@ -289,7 +289,10 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned10))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11_A, TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned11))>]
 let ``Alignment.realignAllExtended, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
-    let actual = Alignment.realignAllExtended before
+    let actual =
+        before.Split("\n")
+        |> Alignment.realignAllExtended
+        |> String.concat "\n"
 
     //printfn "0123456789012345678901234567890"
     //printfn $"Before  :\n012345678901234567890\n{before}"
@@ -314,7 +317,10 @@ let ``Alignment.realignAllExtended, always removes excess whitespace and aligns 
 [<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned10))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11_B, TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned11))>]
 let ``Alignment.realignAll, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
-    let actual = Alignment.realignAll before
+    let actual =
+        before.Split("\n")
+        |> Alignment.realignAll
+        |> String.concat "\n"
 
     //printfn "0123456789012345678901234567890"
     //printfn $"Before  :\n012345678901234567890\n{before}"
@@ -381,7 +387,10 @@ module RealignToFirstLine =
 
 [<TestCase(RealignToFirstLine.Unaligned00, RealignToFirstLine.Aligned00, TestName = "{m}: " + (nameof RealignToFirstLine) + "." + (nameof RealignToFirstLine.Unaligned00))>]
 let ``Alignment.realignToFirstLine, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
-    let actual = Alignment.realignToFirstLineExtended before
+    let actual =
+        before.Split("\n")
+        |> Alignment.realignToFirstLineExtended
+        |> String.concat "\n"
 
     //printfn "0123456789012345678901234567890"
     //printfn $"Before  :\n012345678901234567890\n{before}"

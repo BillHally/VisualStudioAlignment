@@ -76,7 +76,7 @@ namespace Hally.Alignment.VisualStudio
 
     public abstract class AlignmentCommandHandler<TEditorCommandArgs> : ICommandHandler<TEditorCommandArgs> where TEditorCommandArgs : EditorCommandArgs
     {
-        protected AlignmentCommandHandler(string displayName, Func<string, string> align)
+        protected AlignmentCommandHandler(string displayName, Func<string[], string[]> align)
         {
             DisplayName = displayName;
             this.align = align;
@@ -84,7 +84,7 @@ namespace Hally.Alignment.VisualStudio
 
         [Import]
         private IEditorOperationsFactoryService EditorOperations = null;
-        private readonly Func<string, string> align;
+        private readonly Func<string[], string[]> align;
 
         public string DisplayName { get; }
 

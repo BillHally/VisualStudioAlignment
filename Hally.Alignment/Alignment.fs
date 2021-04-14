@@ -187,82 +187,59 @@ let realign (s : string) (x : string) =
     String.Join("\n", lines)
 
 [<CompiledName("UnalignAll")>]
-let unalignAll (x : string) : string =
-    let lines = x.Split('\n') |> Array.map Line.ofString
+let unalignAll (xs : string[]) : string[] =
+    let lines = xs |> Array.map Line.ofString
 
-    let lines =
-        TokenKind.all
-        |> Array.fold (fun acc s -> unalignLines s acc) lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
+    TokenKind.all
+    |> Array.fold (fun acc s -> unalignLines s acc) lines
+    |> Array.map Line.toString
 
 [<CompiledName("AlignAll")>]
-let alignAll (x : string) : string =
-    let lines = x.Split('\n') |> Array.map Line.ofString
-
-    let lines = alignLines TokenKind.all lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
+let alignAll (xs : string[]) : string[] =
+    xs
+    |> Array.map Line.ofString
+    |> alignLines TokenKind.all
+    |> Array.map Line.toString
 
 [<CompiledName("AlignAllExtended")>]
-let alignAllExtended (x : string) : string =
-    let lines = x.Split('\n') |> Array.map Line.ofString
-
-    let lines = alignLines TokenKind.allExtended lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
+let alignAllExtended (xs : string[]) : string[] =
+    xs
+    |> Array.map Line.ofString
+    |> alignLines TokenKind.allExtended
+    |> Array.map Line.toString
 
 [<CompiledName("RealignAll")>]
-let realignAll (x : string) : string =
-    let lines = x.Split('\n') |> Array.map Line.ofString
+let realignAll (xs : string[]) : string[] =
+    let lines = xs |> Array.map Line.ofString
 
-    let lines =
-        TokenKind.all
-        |> Array.fold (fun acc a -> unalignLines a acc) lines
-
-    let lines = alignLines TokenKind.all lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
+    TokenKind.all
+    |> Array.fold (fun acc a -> unalignLines a acc) lines
+    |> alignLines TokenKind.all
+    |> Array.map Line.toString
 
 [<CompiledName("RealignToFirstLine")>]
-let realignToFirstLine (x : string) : string =
-    let lines = x.Split('\n') |> Array.map Line.ofString
+let realignToFirstLine (xs : string[]) : string[] =
+    let lines = xs |> Array.map Line.ofString
 
-    let lines =
-        TokenKind.all
-        |> Array.fold (fun acc a -> unalignLines a acc) lines
-
-    let lines = alignToFirstLine TokenKind.all lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
+    TokenKind.all
+    |> Array.fold (fun acc a -> unalignLines a acc) lines
+    |> alignToFirstLine TokenKind.all
+    |> Array.map Line.toString
 
 [<CompiledName("RealignToFirstLineExtended")>]
-let realignToFirstLineExtended (x : string) : string =
-    let lines = x.Split('\n') |> Array.map Line.ofString
+let realignToFirstLineExtended (xs : string[]) : string[] =
+    let lines = xs |> Array.map Line.ofString
 
-    let lines =
-        TokenKind.all
-        |> Array.fold (fun acc a -> unalignLines a acc) lines
-
-    let lines = alignToFirstLine TokenKind.allExtended lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
+    TokenKind.all
+    |> Array.fold (fun acc a -> unalignLines a acc) lines
+    |> alignToFirstLine TokenKind.allExtended
+    |> Array.map Line.toString
 
 [<CompiledName("RealignAllExtended")>]
-let realignAllExtended (x : string) : string =
-    let lines = x.Split('\n') |> Array.map Line.ofString
+let realignAllExtended (xs : string[]) : string[] =
+    let lines = xs |> Array.map Line.ofString
 
-    let lines =
-        TokenKind.all
-        |> Array.fold (fun acc a -> unalignLines a acc) lines
-
-    let lines = alignLines TokenKind.allExtended lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
+    TokenKind.all
+    |> Array.fold (fun acc a -> unalignLines a acc) lines
+    |> alignLines TokenKind.allExtended
+    |> Array.map Line.toString

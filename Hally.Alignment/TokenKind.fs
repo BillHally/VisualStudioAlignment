@@ -56,13 +56,19 @@ module TokenKind =
         Colon
         Comma
         Equals
-        //Type
-        //OpenBrace
-        //CloseBrace
+        Type
+        OpenBrace
+        CloseBrace
         Other
     |]
 
-    let all = [| for x in allExtended do if x <> Other then x |]
+    let all = [|
+        With
+        Member
+        Colon
+        Comma
+        Equals
+    |]
 
     let ofString = function
         | "with"   -> With
