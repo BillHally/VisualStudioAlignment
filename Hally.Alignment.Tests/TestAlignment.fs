@@ -273,6 +273,16 @@ module ComplexAlignmentRequired =
             O  = pqr 1000 100 1
 """
 
+    let [<Literal>] Unaligned12 = """
+        let         thing3         arg0        arg1      =     thing0    arg0   arg1  |> thing1 other0       |> thing2
+        let thing4 arg0 = thing0 arg0 other0 |> thing1  whatever0 |>     thing2
+"""
+
+    let [<Literal>] Realigned12 = """
+        let thing3 arg0 arg1 = thing0 arg0 arg1   |> thing1 other0    |> thing2
+        let thing4 arg0      = thing0 arg0 other0 |> thing1 whatever0 |> thing2
+"""
+
 [<TestCase(NoAlignmentRequired.Empty           , NoAlignmentRequired.Empty             , TestName = "{m}: " + (nameof NoAlignmentRequired.Empty           ))>]
 [<TestCase(NoAlignmentRequired.OneLine         , NoAlignmentRequired.OneLine           , TestName = "{m}: " + (nameof NoAlignmentRequired.OneLine         ))>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , NoAlignmentRequired.WhiteSpaceOnly    , TestName = "{m}: " + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
@@ -288,6 +298,7 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned09, ComplexAlignmentRequired.Realigned09  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned09))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned10))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11_A, TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned11))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned12, ComplexAlignmentRequired.Realigned12  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned12))>]
 let ``Alignment.realignAllExtended, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual =
         before.Split("\n")

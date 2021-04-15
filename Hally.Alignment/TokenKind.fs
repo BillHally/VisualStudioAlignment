@@ -12,6 +12,10 @@ type TokenKind =
     | Type
     | OpenBrace
     | CloseBrace
+    | ForwardPipe
+    | BackwardPipe
+    | ForwardArrow
+    | BackwardArrow
     | Return
     | Other
 
@@ -59,6 +63,10 @@ module TokenKind =
         Type
         OpenBrace
         CloseBrace
+        ForwardPipe
+        BackwardPipe
+        ForwardArrow
+        BackwardArrow
         Other
     |]
 
@@ -68,6 +76,12 @@ module TokenKind =
         Colon
         Comma
         Equals
+        OpenBrace
+        CloseBrace
+        ForwardPipe
+        BackwardPipe
+        ForwardArrow
+        BackwardArrow
     |]
 
     let ofString = function
@@ -78,6 +92,10 @@ module TokenKind =
         | ","      -> Comma
         | "{"      -> OpenBrace
         | "}"      -> CloseBrace
+        | "|>"     -> ForwardPipe
+        | "<|"     -> BackwardPipe
+        | "->"     -> ForwardArrow
+        | "<-"     -> BackwardArrow
         | "type"   -> Type
         | "\r"     -> Return
         | _        -> Other
