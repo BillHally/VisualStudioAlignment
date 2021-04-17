@@ -5,9 +5,18 @@ VisualStudioVersion = 16.6.30114.105
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Hally.Alignment.VisualStudio", "Hally.Alignment.VisualStudio\Hally.Alignment.VisualStudio.csproj", "{65AFC6DE-0FE9-4167-85E0-287B037DBC52}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hally.Alignment", "Hally.Alignment\Hally.Alignment.fsproj", "{98208680-2023-42DB-9C6F-6BDBA07BBF79}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hally.Alignment", "Hally.Alignment\Hally.Alignment.fsproj", "{98208680-2023-42DB-9C6F-6BDBA07BBF79}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Hally.Alignment.Tests", "Hally.Alignment.Tests\Hally.Alignment.Tests.fsproj", "{19581B6A-FBAE-4D9C-9644-E61019E5ADC2}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Hally.Alignment.Tests", "Hally.Alignment.Tests\Hally.Alignment.Tests.fsproj", "{19581B6A-FBAE-4D9C-9644-E61019E5ADC2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{CF726CC5-382E-4EC3-8538-BDA053DA9967}"
+	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
+		build.ps1 = build.ps1
+		global.json = global.json
+		LICENSE = LICENSE
+		VisualStudioAlignment.v3.ncrunchsolution = VisualStudioAlignment.v3.ncrunchsolution
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
