@@ -3,6 +3,7 @@ module Hally.Alignment.Alignment
 
 open System
 
+// TODO: Remove tk - or use it?
 let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
 
     Array.init lines.Length
@@ -22,6 +23,8 @@ let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
                     let start =
                         match t.Kind with
                         | Comma
+                        | SemiColon
+                        // | Colon // TODO: support no leading space for Colon?
                         | Return -> previous.Last + 1
                         | _      -> previous.Last + 2
                     {
@@ -94,42 +97,41 @@ let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKin
     | None -> lines
     | Some a ->
         let updated =
-            Array.init lines.Length
-                (fun i ->
-                    let line = lines.[i]
+            Array.init lines.Length (fun i ->
+                let line = lines.[i]
 
-                    if startIndex >= line.Length || not (shouldAlignLine line) then
-                        // Leave the current line unchanged if it's too short to contain the startIndex
+                if startIndex >= line.Length || not (shouldAlignLine line) then
+                    // Leave the current line unchanged if it's too short, or shouldn't be aligned
+                    line
+                else
+                    let n = a.Indices.[i]
+
+                    if n = -1 || n = a.MaxIndex then
+                        // Leave the current line unchanged if it either doesn't contain s, or it contains it at the max index
                         line
                     else
-                        let n = a.Indices.[i]
+                        // If appropriate, pad the difference between the actual index for this line and the max index
+                        let padding = a.MaxIndex - n
 
-                        if n = -1 || n = a.MaxIndex then
-                            // Leave the current line unchanged if it either doesn't contain s, or it contains it at the max index
-                            line
-                        else
-                            // If appropriate, pad the difference between the actual index for this line and the max index
-                            let padding = a.MaxIndex - n
+                        let mutable addPadding = false
 
-                            let mutable addPadding = false
+                        {
+                            Tokens =
+                                List.init line.Tokens.Length (fun i ->
+                                    let t = line.Tokens.[i]
 
-                            {
-                                Tokens =
-                                    List.init line.Tokens.Length
-                                        (fun i ->
-                                            let t = line.Tokens.[i]
-                                            if addPadding || t.Start > startIndex && t.Kind = a.Kind then
-                                                addPadding <- true
-                                                {
-                                                    t with
-                                                        Start = t.Start + padding
-                                                        Last  = t.Last  + padding
-                                                }
-                                            else
-                                                t
-                                        )
-                            }
-                )
+                                    if addPadding || t.Start >= startIndex && t.Kind = a.Kind then
+                                        addPadding <- true
+                                        {
+                                            t with
+                                                Start = t.Start + padding
+                                                Last  = t.Last  + padding
+                                        }
+                                    else
+                                        t
+                                )
+                        }
+            )
 
         alignFrom shouldAlignLine (a.MaxIndex + 1) alignBy updated (already |> Set.add a.Kind)
 

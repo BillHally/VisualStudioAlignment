@@ -283,6 +283,26 @@ module ComplexAlignmentRequired =
         let thing4 arg0      = thing0 arg0 other0 |> thing1 whatever0 |> thing2
 """
 
+    let [<Literal>] Unaligned13 = """
+        let abc <- def
+        let gh, ijk <- 5, 700
+"""
+
+    let [<Literal>] Realigned13 = """
+        let abc     <- def
+        let gh, ijk <- 5, 700
+"""
+
+    let [<Literal>] Unaligned14 = """
+        type Abc = { Def : G; Hijklm : Nop } with member this.Qrstu () = $"{this.Def} ({this.Hijklm})"
+        type Ab     = { D : Efg; Hij : Klm } with   member this.Nopq = 8
+"""
+
+    let [<Literal>] Realigned14 = """
+        type Abc = { Def : G  ; Hijklm : Nop } with member this.Qrstu () = $"{this.Def} ({this.Hijklm})"
+        type Ab  = { D   : Efg; Hij    : Klm } with member this.Nopq     = 8
+"""
+
 [<TestCase(NoAlignmentRequired.Empty           , NoAlignmentRequired.Empty             , TestName = "{m}: " + (nameof NoAlignmentRequired.Empty           ))>]
 [<TestCase(NoAlignmentRequired.OneLine         , NoAlignmentRequired.OneLine           , TestName = "{m}: " + (nameof NoAlignmentRequired.OneLine         ))>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , NoAlignmentRequired.WhiteSpaceOnly    , TestName = "{m}: " + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
@@ -299,6 +319,8 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned10))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11_A, TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned11))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned12, ComplexAlignmentRequired.Realigned12  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned12))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned13, ComplexAlignmentRequired.Realigned13  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned13))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned14, ComplexAlignmentRequired.Realigned14  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned14))>]
 let ``Alignment.realignAllExtended, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual =
         before.Split("\n")
@@ -364,14 +386,22 @@ let ``Alignment.realignAll, always removes excess whitespace and aligns by all r
 [<TestCase(ComplexAlignmentRequired.Unaligned09, TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned09))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned10, TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned10))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned11, TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned11))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned12, TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned12))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned13, TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned13))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned14, TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned14))>]
 [<TestCase(NoAlignmentRequired.Empty           , TestName = "{m}: " + (nameof NoAlignmentRequired     ) + "." + (nameof NoAlignmentRequired.Empty           ))>]
 [<TestCase(NoAlignmentRequired.OneLine         , TestName = "{m}: " + (nameof NoAlignmentRequired     ) + "." + (nameof NoAlignmentRequired.OneLine         ))>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , TestName = "{m}: " + (nameof NoAlignmentRequired     ) + "." + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
 let ``Line.ofString >> Line.toString roundtrips correctly`` (x : string) =
-    x
-    |> Line.ofString
-    |> Line.toString
-    |> shouldEqual x
+    x.Split("\n")
+    |> Array.iter (fun x ->
+        x
+        |> (fun x -> printfn $"{x}"; x)
+        |> Line.ofString
+        |> (fun x -> printfn $"{x}"; x)
+        |> Line.toString
+        |> shouldEqual x
+    )
 
 module RealignToFirstLine =
     let [<Literal>] Unaligned00 = """    <KeyBinding guid="guidCmdSet" id="UnalignCommandId" editor="GUID_TextEditorFactory" key1="VK_OEM_1" mod1="Control Alt" />

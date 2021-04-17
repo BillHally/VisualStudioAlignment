@@ -7,6 +7,7 @@ type TokenKind =
     | With
     | Member
     | Colon
+    | SemiColon
     | Equals
     | Comma
     | Type
@@ -16,7 +17,9 @@ type TokenKind =
     | BackwardPipe
     | ForwardArrow
     | BackwardArrow
+
     | Return
+
     | Other
 
 type Token =
@@ -39,7 +42,7 @@ type Line =
         | Some x -> x.Last + 1
         | None   -> 0
 
-    override this.ToString() = this.Tokens |> Seq.map (fun x -> x.ToString()) |> String.concat ","
+    override this.ToString() = this.Tokens |> Seq.map (fun x -> x.ToString()) |> String.concat Environment.NewLine
 
 [<AutoOpen>]
 module CharActivePatterns =
@@ -58,6 +61,7 @@ module TokenKind =
         With
         Member
         Colon
+        SemiColon
         Comma
         Equals
         Type
@@ -74,6 +78,7 @@ module TokenKind =
         With
         Member
         Colon
+        SemiColon
         Comma
         Equals
         OpenBrace
@@ -88,6 +93,7 @@ module TokenKind =
         | "with"   -> With
         | "member" -> Member
         | ":"      -> Colon
+        | ";"      -> SemiColon
         | "="      -> Equals
         | ","      -> Comma
         | "{"      -> OpenBrace
@@ -135,11 +141,13 @@ module Line =
                             start <- Some i
                             None
                         | Some x ->
-                            // Currently, we only permit Comma to have no leading space, so just check for that
-                            if c = ',' then
+                            // Currently, we only permit Comma and SemiColon to have no leading space, so just check for those
+                            match c with
+                            | ','
+                            | ';' ->
                                 start <- Some i
                                 Some (x, (i - 1))
-                            else
+                            |_ ->
                                 None
 
                 match current with
