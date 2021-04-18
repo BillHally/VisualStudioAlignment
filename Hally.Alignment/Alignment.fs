@@ -8,7 +8,7 @@ let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
 
     Array.init lines.Length
         (fun i ->
-            let tokens = lines.[i].Tokens
+            let tokens = lines.[i].Tokens |> List.filter (fun x -> x.Kind <> Whitespace)
 
             let updated = ResizeArray()
 
@@ -21,16 +21,28 @@ let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
                     let t = tokens.[i]
 
                     let start =
+                        match previous.Kind, t.Kind with
+                        | _         , Comma
+                        | _         , SemiColon
+                        // | Colon // TODO: support no leading space for Colon?. What about other token kinds?
+                        | _         , Whitespace
+                        | _         , Return
+                        | Whitespace, _
+                        | Return    , _ -> previous.Last + 1
+                        | _         , _      ->
+                            printfn $"+2: {previous.Kind} {t.Kind}"
+                            previous.Last + 2
+
+                    let value =
                         match t.Kind with
-                        | Comma
-                        | SemiColon
-                        // | Colon // TODO: support no leading space for Colon?
-                        | Return -> previous.Last + 1
-                        | _      -> previous.Last + 2
+                        | Whitespace -> " "
+                        | _          -> t.Value
+
                     {
-                        t with
-                            Start = start
-                            Last  = t.Value.Length + start - 1
+                        Kind  = t.Kind
+                        Value = value
+                        Start = start
+                        Last  = start + t.Value.Length - 1
                     }
                 |> updated.Add
 
@@ -93,7 +105,8 @@ let getNextTokenKindToAlignBy (startIndex : int) (alignBy : TokenKind[]) (xs : L
         ) None
 
 let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKind[]) (lines : Line[]) already : Line[] =
-    match getNextTokenKindToAlignBy startIndex alignBy lines with
+    let tokenLines = lines |> Array.map (fun x -> if shouldAlignLine x then x else { Tokens = [] }) // TODO: Improve this
+    match getNextTokenKindToAlignBy startIndex alignBy tokenLines with
     | None -> lines
     | Some a ->
         let updated =
@@ -139,7 +152,7 @@ let private always (_ : Line) = true
 
 let private ifFirstTokenIsSameAs (target : Line) (x : Line) : bool =
     match target.Tokens, x.Tokens with
-    | x::_, y::_ -> x = y
+    | x::_, y::_ -> printfn $"{x.Kind} = {y.Kind} ? {x.Kind = y.Kind}"; x.Kind = y.Kind
     | _   , _    -> false
 
 let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =

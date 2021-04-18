@@ -1,0 +1,9 @@
+<Project>
+	<PropertyGroup>
+		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Include="paket.references" />
+		<None Include="*.ncrunchproject" />
+	</ItemGroup>
+</Project>

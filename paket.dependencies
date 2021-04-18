@@ -1,0 +1,15 @@
+source https://www.nuget.org/api/v2/
+storage: none
+framework: auto-detect
+
+nuget FSharp.Core
+
+nuget Microsoft.VisualStudio.SDK 16.0.206
+nuget Microsoft.VSSDK.BuildTools 16.9.2016
+
+nuget FParsec
+
+nuget Microsoft.NET.Test.Sdk
+nuget FsUnit
+nuget NUnit
+nuget NUnit3TestAdapter
