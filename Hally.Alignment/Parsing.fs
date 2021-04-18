@@ -53,6 +53,13 @@ type private Tok =
 module private Tok =
     let ofTk kind tk = { Tk = tk; TokenKind = kind }
 
+    let toToken x =
+        {
+            Kind  = x.TokenKind
+            Value = Tk.toString x.Tk
+            Start = int x.Start
+        }
+
 let private withIndex (p : Parser<'r, unit>) (stream : CharStream<unit>) : Reply<'r * int64> =
     let start = stream.Index
     let reply = p stream
@@ -132,20 +139,10 @@ let private anyToken =
 let private tokenize = many anyToken
 
 module private ParserResult =
-    let toToken x =
-        let value = Tk.toString x.Tk
-        let start = int x.Start
-
-        {
-            Kind  = x.TokenKind
-            Value = value
-            Start = start
-        }
-
     let tryGetTokens = function
         | Success (xs, (), _) ->
             xs
-            |> List.map toToken
+            |> List.map Tok.toToken
             |> Result.Ok
         | Failure (s, e, ()) -> Result.Error (s, e)
 

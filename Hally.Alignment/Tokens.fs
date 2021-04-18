@@ -1,8 +1,5 @@
 ﻿namespace Hally.Alignment
 
-open System
-open System.Text
-
 type TokenKind =
     | With
     | Member
