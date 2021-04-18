@@ -132,7 +132,8 @@ module Line =
                 {
                     Tokens = xs
                 }
-            | Error (a, b, c) ->
+            | Error (s, e) ->
+                // TODO: when running under debug, throw an exception holding the error messages
                 // Fall back to some basic string parsing (Will align *inside* string literals etc., but OK most of the time)
                 basicOfString text
 
@@ -157,9 +158,7 @@ module Line =
                             x.Start
                         else
                             commaOrOtherLoop xs
-                    | _ ->
-                        printfn $"Returning -1 (encountered: {x.Kind})"
-                        -1
+                    | _ -> -1
 
         match tk with
         | Comma
@@ -178,7 +177,6 @@ module Line =
         let sb = StringBuilder(x.Length)
         let mutable current = 0
 
-        printfn $"{x}"
         for t in x.Tokens do
             // If necessary, add padding
             match t.Kind with

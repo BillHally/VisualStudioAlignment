@@ -28,19 +28,12 @@ module private Tk =
     let tk3 tk0 tk1 tk2 = M [ tk0 ; tk1; tk2 ]
 
     let rec toString = function
-        | S  (x , n) -> x
-        | C  (x , n) -> string x
-        | M   xs     -> List.fold (fun acc x -> acc + toString x) "" xs
-
-    let toToken kind index x =
-        let value = toString x // TODO: 'x' holds 1 or more indices
-
-        {
-            Kind  = kind
-            Value = value
-            Start = index
-            Last  = index + value.Length
-        }
+        | S  (x , _) -> x
+        | C  (x , _) -> string x
+        | M xs ->
+            let sb = StringBuilder()
+            for x in xs do sb.Append(toString x) |> ignore
+            sb.ToString()
 
     let rec start = function
         | C (_, n) -> n
@@ -77,14 +70,14 @@ let private many1'        x = withIndex (many1        x)
 let private many1Chars'   x = withIndex (many1Chars   x)
 
 let private literalStringPlain =
-    let normalChar  = satisfy' (fun c -> c <> '\\' && c <> '"') |>> C
+    let quote = pchar' '\"' |>> C
+
+    let normalChar = satisfy' (fun c -> c <> '\\' && c <> '"') |>> C
     let escapedChar = pipe2 (pstring' "\\") (withIndex (anyOf "\\nrt\"" |>> string)) (fun (a, n) (b, _) -> (a + b), n) |>> S
 
-    pipe3
-        (pchar' '\"' |>> C)
-        (many (normalChar <|> escapedChar) |>> M)
-        (pchar' '\"' |>> C)
-        (Tk.tk3)
+    let manyChars = many (normalChar <|> escapedChar) |>> M
+
+    pipe3 quote manyChars quote Tk.tk3
 
 let private literalStringInterpolated = pipe2 (pchar' '$' |>> C) literalStringPlain Tk.tk2
 
@@ -114,7 +107,7 @@ let private whitespace : Parser<Tok, unit> = many1Chars' (pchar '\t' <|> pchar '
 let private str : Parser<Tok, unit> = (literalStringInterpolated <|> literalStringPlain) >> (tok LiteralString)
 
 let private other      : Parser<Tok, unit> = many1Satisfy' (isNoneOf ":;=,{}|<>\"\n\r\t ") |>> S >> tok Other
-let private otherLoose : Parser<Tok, unit> = many1Satisfy' (isNoneOf "\"\n\r\t ") |>> S >> tok Other
+let private otherLoose : Parser<Tok, unit> = many1Satisfy' (isNoneOf "\"\n\r\t "         ) |>> S >> tok Other
 
 let private anyToken =
     with'
@@ -133,10 +126,8 @@ let private anyToken =
     <|> str
     <|> return'
     <|> whitespace
-    //<|> space
-    //<|> tab
-    <|> other
-    <|> otherLoose // Catch anything else
+    <|> other      // Catch other things, but without greedily eating trailing comma etc.
+    <|> otherLoose // Catch anything else // TODO: Add some property based tests to see what needs this
 
 let private tokenize = many anyToken
 
@@ -145,23 +136,18 @@ module private ParserResult =
         let value = Tk.toString x.Tk
         let start = int x.Start
 
-        match x.TokenKind with
-        //| Tab
-        //| Space -> None
-        | _ ->
-            Some
-                {
-                    Kind  = x.TokenKind
-                    Value = value
-                    Start = start
-                    Last  = start + (value.Length - 1) // TODO: Do we need "Last"?
-                }
+        {
+            Kind  = x.TokenKind
+            Value = value
+            Start = start
+            Last  = start + (value.Length - 1) // TODO: Do we need "Last"?
+        }
 
     let tryGetTokens = function
-        | Success (xs, u, p) ->
-            let ts = xs |> List.choose toToken
-            ts |> List.iter (fun x -> printfn $"Line:{x}")
-            Result.Ok ts
-        | Failure (x, u, p) -> Result.Error (x, u, p)
+        | Success (xs, (), _) ->
+            xs
+            |> List.map toToken
+            |> Result.Ok
+        | Failure (s, e, ()) -> Result.Error (s, e)
 
 let tryTokenize x = run tokenize x |> ParserResult.tryGetTokens

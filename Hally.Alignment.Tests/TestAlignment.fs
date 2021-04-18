@@ -183,7 +183,7 @@ let ``Alignment.getNextIndices always returns the expected index`` (x : string) 
 
     x.Split('\n')
     |> Array.map Line.ofString
-    |> (fun xs -> Array.iter (fun x -> printfn $"Tokens: {x}") xs; xs)
+    //|> (fun xs -> Array.iter (fun x -> printfn $"Tokens: {x}") xs; xs)
     |> Alignment.getNextIndices startIndex [| TokenKind.ofString alignBy |]
     |> shouldEqual expected
 
@@ -345,10 +345,10 @@ let ``Alignment.realignAllExtended, always removes excess whitespace and aligns 
         |> Alignment.realignAllExtended
         |> String.concat "\n"
 
-    printfn "0123456789012345678901234567890"
-    printfn $"Before  :\n012345678901234567890\n{before}"
-    printfn $"Actual  :\n012345678901234567890\n{actual}"
-    printfn $"Expected:\n012345678901234567890\n{after}"
+    //printfn "0123456789012345678901234567890"
+    //printfn $"Before  :\n012345678901234567890\n{before}"
+    //printfn $"Actual  :\n012345678901234567890\n{actual}"
+    //printfn $"Expected:\n012345678901234567890\n{after}"
 
     actual |> shouldEqual after
 
@@ -414,9 +414,9 @@ let ``Line.ofString >> Line.toString roundtrips correctly`` (x : string) =
     x.Split("\n")
     |> Array.iter (fun x ->
         x
-        |> (fun x -> printfn $"{x}"; x)
+        //|> (fun x -> printfn $"{x}"; x)
         |> Line.ofString
-        |> (fun x -> printfn $"{x}"; x)
+        //|> (fun x -> printfn $"{x}"; x)
         |> Line.toString
         |> shouldEqual x
     )
@@ -444,9 +444,9 @@ let ``Alignment.realignToFirstLine, always removes excess whitespace and aligns 
         |> Alignment.realignToFirstLineExtended
         |> String.concat "\n"
 
-    printfn "0123456789012345678901234567890"
-    printfn $"Before  :\n012345678901234567890\n{before}"
-    printfn $"Actual  :\n012345678901234567890\n{actual}"
-    printfn $"Expected:\n012345678901234567890\n{after}"
+    //printfn "0123456789012345678901234567890"
+    //printfn $"Before  :\n012345678901234567890\n{before}"
+    //printfn $"Actual  :\n012345678901234567890\n{actual}"
+    //printfn $"Expected:\n012345678901234567890\n{after}"
 
     actual |> shouldEqual after

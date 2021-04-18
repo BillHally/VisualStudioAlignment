@@ -29,9 +29,7 @@ let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
                         | _         , Return
                         | Whitespace, _
                         | Return    , _ -> previous.Last + 1
-                        | _         , _      ->
-                            printfn $"+2: {previous.Kind} {t.Kind}"
-                            previous.Last + 2
+                        | _         , _ -> previous.Last + 2
 
                     let value =
                         match t.Kind with
@@ -39,10 +37,9 @@ let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
                         | _          -> t.Value
 
                     {
-                        Kind  = t.Kind
-                        Value = value
-                        Start = start
-                        Last  = start + t.Value.Length - 1
+                        t with
+                            Start = start
+                            Last  = start + t.Value.Length - 1
                     }
                 |> updated.Add
 
@@ -87,8 +84,8 @@ let getNextTokenKindToAlignBy (startIndex : int) (alignBy : TokenKind[]) (xs : L
                 let max = indices |> Array.max
                 Some
                     {
-                        Kind    = a
-                        Indices = indices
+                        Kind     = a
+                        Indices  = indices
                         MaxIndex = max
                     }
             else
@@ -150,9 +147,9 @@ let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKin
 
 let private always (_ : Line) = true
 
-let private ifFirstTokenIsSameAs (target : Line) (x : Line) : bool =
+let private ifFirstTokenIsSameKindAs (target : Line) (x : Line) : bool =
     match target.Tokens, x.Tokens with
-    | x::_, y::_ -> printfn $"{x.Kind} = {y.Kind} ? {x.Kind = y.Kind}"; x.Kind = y.Kind
+    | x::_, y::_ -> x.Kind = y.Kind
     | _   , _    -> false
 
 let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
@@ -163,7 +160,7 @@ let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
 
 let alignToFirstLine (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     if lines.Length > 1 then
-        alignFrom (ifFirstTokenIsSameAs lines.[0]) 0 alignBy lines Set.empty
+        alignFrom (ifFirstTokenIsSameKindAs lines.[0]) 0 alignBy lines Set.empty
     else
         lines
 

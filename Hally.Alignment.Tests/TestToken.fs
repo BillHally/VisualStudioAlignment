@@ -12,7 +12,7 @@ let ``Parsing.tryTokenize, when passed valid input, returns expected tokens`` (i
     let expected1 = Option.ofObj expected1
 
     match Parsing.tryTokenize input with
-    | Result.Error (x, u, p) -> Assert.Fail(x)
+    | Result.Error (s, es) -> Assert.Fail($"{s}: {es}")
     | Result.Ok xs ->
         xs.[0].Value |> shouldEqual expected0
         match expected1 with
