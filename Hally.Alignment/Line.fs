@@ -15,19 +15,15 @@ type Line =
 
     override this.ToString() = this.Tokens |> Seq.map (fun x -> x.ToString()) |> String.concat Environment.NewLine
 
-[<AutoOpen>]
-module CharActivePatterns =
-    /// TODO: Explicitly track tabs and spaces, instead of just converting to spaces
-    let (|TabOrSpace|Eol|NotWhitespace|) x =
-        match x with
+[<RequireQualifiedAccess>]
+module Line =
+    let private (| TabOrSpace | Eol | NotWhitespace |) = function
         | ' '
         | '\t' -> TabOrSpace
         | '\r' -> Eol
         | '\n' -> Eol // Shouldn't ever happen - we split on newlines
         | _    -> NotWhitespace
 
-[<RequireQualifiedAccess>]
-module Line =
     let private basicOfString (text : string) : Line =
         let tokens = ResizeArray<Token>()
         let mutable start = None

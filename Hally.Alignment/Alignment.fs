@@ -3,8 +3,7 @@ module Hally.Alignment.Alignment
 
 open System
 
-// TODO: Remove tk - or use it?
-let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
+let unalignLines (lines : Line[]) : Line[] =
 
     Array.init lines.Length
         (fun i ->
@@ -30,11 +29,6 @@ let unalignLines (tk : TokenKind) (lines : Line[]) : Line[] =
                         | Whitespace, _
                         | Return    , _ -> previous.Last + 1
                         | _         , _ -> previous.Last + 2
-
-                    let value =
-                        match t.Kind with
-                        | Whitespace -> " "
-                        | _          -> t.Value
 
                     {
                         t with
@@ -165,15 +159,12 @@ let alignToFirstLine (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
         lines
 
 [<CompiledName("Unalign")>]
-let unalign (s : string) (x : string) : string =
-    let lines = x.Split('\n') |> Array.map Line.ofString
-
-    let tk = TokenKind.ofString s
-
-    let lines = unalignLines tk lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
+let unalign (x : string) : string =
+    x.Split('\n')
+    |> Array.map Line.ofString
+    |> unalignLines
+    |> Array.map Line.toString
+    |> String.concat "\n"
 
 [<CompiledName("Align")>]
 let align (s : string) (x : string) : string =
@@ -186,24 +177,11 @@ let align (s : string) (x : string) : string =
     let lines = lines |> Array.map Line.toString
     String.Join("\n", lines)
 
-[<CompiledName("Realign")>]
-let realign (s : string) (x : string) =
-    let lines = x.Split('\n') |> Array.map Line.ofString
-
-    let tk = TokenKind.ofString s
-
-    let lines = unalignLines    tk    lines
-    let lines = alignLines   [| tk |] lines
-
-    let lines = lines |> Array.map Line.toString
-    String.Join("\n", lines)
-
 [<CompiledName("UnalignAll")>]
 let unalignAll (xs : string[]) : string[] =
-    let lines = xs |> Array.map Line.ofString
-
-    TokenKind.all
-    |> Array.fold (fun acc s -> unalignLines s acc) lines
+    xs
+    |> Array.map Line.ofString
+    |> unalignLines
     |> Array.map Line.toString
 
 [<CompiledName("AlignAll")>]
@@ -222,36 +200,32 @@ let alignAllExtended (xs : string[]) : string[] =
 
 [<CompiledName("RealignAll")>]
 let realignAll (xs : string[]) : string[] =
-    let lines = xs |> Array.map Line.ofString
-
-    TokenKind.all
-    |> Array.fold (fun acc a -> unalignLines a acc) lines
+    xs
+    |> Array.map Line.ofString
+    |> unalignLines
     |> alignLines TokenKind.all
     |> Array.map Line.toString
 
 [<CompiledName("RealignToFirstLine")>]
 let realignToFirstLine (xs : string[]) : string[] =
-    let lines = xs |> Array.map Line.ofString
-
-    TokenKind.all
-    |> Array.fold (fun acc a -> unalignLines a acc) lines
+    xs
+    |> Array.map Line.ofString
+    |> unalignLines
     |> alignToFirstLine TokenKind.all
     |> Array.map Line.toString
 
 [<CompiledName("RealignToFirstLineExtended")>]
 let realignToFirstLineExtended (xs : string[]) : string[] =
-    let lines = xs |> Array.map Line.ofString
-
-    TokenKind.all
-    |> Array.fold (fun acc a -> unalignLines a acc) lines
+    xs
+    |> Array.map Line.ofString
+    |> unalignLines
     |> alignToFirstLine TokenKind.allExtended
     |> Array.map Line.toString
 
 [<CompiledName("RealignAllExtended")>]
 let realignAllExtended (xs : string[]) : string[] =
-    let lines = xs |> Array.map Line.ofString
-
-    TokenKind.all
-    |> Array.fold (fun acc a -> unalignLines a acc) lines
+    xs
+    |> Array.map Line.ofString
+    |> unalignLines
     |> alignLines TokenKind.allExtended
     |> Array.map Line.toString
