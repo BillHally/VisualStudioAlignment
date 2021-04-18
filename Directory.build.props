@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<TreatWarningsAsErrors Condition="'$(MSBuildProjectExtension)' == '.fsproj'">true</TreatWarningsAsErrors>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Include="paket.references" />
