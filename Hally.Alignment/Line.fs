@@ -68,7 +68,6 @@ module Line =
                     Kind  = TokenKind.ofString v
                     Value = v
                     Start = start
-                    Last  = last
                 }
                 |> tokens.Add
             | None -> ()
@@ -82,7 +81,6 @@ module Line =
                 Kind  = TokenKind.ofString v
                 Value = v
                 Start = start
-                Last  = last
             }
             |> tokens.Add
         | None -> ()
@@ -98,7 +96,6 @@ module Line =
                     Kind  = TokenKind.ofString v
                     Value = v
                     Start = start
-                    Last  = last
                 }
                 |> tokens.Add
         | None ->
@@ -109,7 +106,6 @@ module Line =
                 Kind  = TokenKind.ofString v
                 Value = v
                 Start = start
-                Last  = last
             }
             |> tokens.Add
 

@@ -36,8 +36,9 @@ type Token =
         Kind  : TokenKind
         Value : string
         Start : int
-        Last  : int
     }
+
+    member this.Last = this.Start + this.Value.Length - 1
 
     override this.ToString() =
         let value = $"\"{match this.Kind with Return -> string '⏎' | _ -> this.Value}\""

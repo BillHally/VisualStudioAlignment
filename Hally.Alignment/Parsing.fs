@@ -140,7 +140,6 @@ module private ParserResult =
             Kind  = x.TokenKind
             Value = value
             Start = start
-            Last  = start + (value.Length - 1) // TODO: Do we need "Last"?
         }
 
     let tryGetTokens = function

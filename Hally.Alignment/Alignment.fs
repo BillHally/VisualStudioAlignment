@@ -33,7 +33,6 @@ let unalignLines (lines : Line[]) : Line[] =
                     {
                         t with
                             Start = start
-                            Last  = start + t.Value.Length - 1
                     }
                 |> updated.Add
 
@@ -129,7 +128,6 @@ let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKin
                                         {
                                             t with
                                                 Start = t.Start + padding
-                                                Last  = t.Last  + padding
                                         }
                                     else
                                         t
