@@ -18,5 +18,7 @@
   <Assets>
     <Asset Type="Microsoft.VisualStudio.VsPackage" d:Source="Project" d:ProjectName="%CurrentProject%" Path="|%CurrentProject%;PkgdefProjectOutputGroup|" />
     <Asset Type="Microsoft.VisualStudio.MefComponent" d:Source="Project" d:ProjectName="%CurrentProject%" TargetVersion="[16.0,17.0)" Path="|%CurrentProject%|" />
+    <!--<Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="FParsec.dll" AssemblyName="FParsec, Version=1.0.0.0, Culture=neutral, PublicKeyToken=40ccfc0a09edbb5d" />
+        <Asset Type="Microsoft.VisualStudio.Assembly" d:Source="File" Path="FParsecCS.dll" AssemblyName="FParsecCS, Version=1.0.0.0, Culture=neutral, PublicKeyToken=40ccfc0a09edbb5d" />-->
   </Assets>
 </PackageManifest>

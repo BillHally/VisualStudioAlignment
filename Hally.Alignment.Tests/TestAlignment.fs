@@ -179,7 +179,7 @@ let ``Alignment.unalign, unaligns the lines it is passed from after the indent t
 [<TestCase(AlignByOther.Other_U_00        , 0, "" ,  "-1;4;4;-1" , TestName = "Alignment.getNextIndices " + (nameof AlignByOther.Other_U_00        ) + ", {1}, {2}")>]
 [<TestCase(AlignByOther.Other_U_00        , 5, "" ,  "-1;6;8;-1" , TestName = "Alignment.getNextIndices " + (nameof AlignByOther.Other_U_00        ) + ", {1}, {2}")>]
 let ``Alignment.getNextIndices always returns the expected index`` (x : string) (startIndex : int) (alignBy : string) (expected : string) =
-    let expected = expected.Split(";") |> Array.map (fun x -> [| int x |])
+    let expected = expected.Split(';') |> Array.map (fun x -> [| int x |])
 
     x.Split('\n')
     |> Array.map Line.ofString
@@ -341,7 +341,7 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned15, ComplexAlignmentRequired.Realigned15  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned15))>]
 let ``Alignment.realignAllExtended, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual =
-        before.Split("\n")
+        before.Split('\n')
         |> Alignment.realignAllExtended
         |> String.concat "\n"
 
@@ -369,7 +369,7 @@ let ``Alignment.realignAllExtended, always removes excess whitespace and aligns 
 [<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11_B, TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned11))>]
 let ``Alignment.realignAll, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual =
-        before.Split("\n")
+        before.Split('\n')
         |> Alignment.realignAll
         |> String.concat "\n"
 
@@ -411,7 +411,7 @@ let ``Alignment.realignAll, always removes excess whitespace and aligns by all r
 [<TestCase(NoAlignmentRequired.OneLine         , TestName = "{m}: " + (nameof NoAlignmentRequired     ) + "." + (nameof NoAlignmentRequired.OneLine         ))>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , TestName = "{m}: " + (nameof NoAlignmentRequired     ) + "." + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
 let ``Line.ofString >> Line.toString roundtrips correctly`` (x : string) =
-    x.Split("\n")
+    x.Split('\n')
     |> Array.iter (fun x ->
         x
         //|> (fun x -> printfn $"{x}"; x)
@@ -440,7 +440,7 @@ module RealignToFirstLine =
 [<TestCase(RealignToFirstLine.Unaligned00, RealignToFirstLine.Realigned00, TestName = "{m}: " + (nameof RealignToFirstLine) + "." + (nameof RealignToFirstLine.Realigned00))>]
 let ``Alignment.realignToFirstLine, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual =
-        before.Split("\n")
+        before.Split('\n')
         |> Alignment.realignToFirstLineExtended
         |> String.concat "\n"
 
