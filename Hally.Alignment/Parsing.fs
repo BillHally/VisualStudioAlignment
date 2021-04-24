@@ -96,28 +96,30 @@ let private tok kind (x : Reply<Tk>) : Reply<Tok> =
         | ReplyStatus.Ok -> Reply(Tok.ofTk kind x.Result)
         | _              -> Reply(x.Status, x.Error)
 
-let private with'         : Parser<Tok, unit> = pstring' "with"   |>> S >> tok With
-let private member'       : Parser<Tok, unit> = pstring' "member" |>> S >> tok Member
-let private colon         : Parser<Tok, unit> = pchar'   ':'      |>> C >> tok Colon
-let private semiColon     : Parser<Tok, unit> = pchar'   ';'      |>> C >> tok SemiColon
-let private equals        : Parser<Tok, unit> = pchar'   '='      |>> C >> tok Equals
-let private comma         : Parser<Tok, unit> = pchar'   ','      |>> C >> tok Comma
-let private type'         : Parser<Tok, unit> = pstring' "type"   |>> S >> tok Type
-let private openBrace     : Parser<Tok, unit> = pchar'   '{'      |>> C >> tok OpenBrace
-let private closeBrace    : Parser<Tok, unit> = pchar'   '}'      |>> C >> tok CloseBrace
-let private forwardPipe   : Parser<Tok, unit> = pstring' "|>"     |>> S >> tok ForwardPipe
-let private backwardPipe  : Parser<Tok, unit> = pstring' "<|"     |>> S >> tok BackwardPipe
-let private forwardArrow  : Parser<Tok, unit> = pstring' "->"     |>> S >> tok ForwardArrow
-let private backwardArrow : Parser<Tok, unit> = pstring' "<-"     |>> S >> tok BackwardArrow
-let private return'       : Parser<Tok, unit> = pchar'   '\r'     |>> C >> tok Return
-let private xmlCloseTag   : Parser<Tok, unit> = pstring' "/>"     |>> S >> tok XmlCloseTag
+let private with'            : Parser<Tok, unit> = pstring' "with"   |>> S >> tok With
+let private member'          : Parser<Tok, unit> = pstring' "member" |>> S >> tok Member
+let private colon            : Parser<Tok, unit> = pchar'   ':'      |>> C >> tok Colon
+let private semiColon        : Parser<Tok, unit> = pchar'   ';'      |>> C >> tok SemiColon
+let private equals           : Parser<Tok, unit> = pchar'   '='      |>> C >> tok Equals
+let private comma            : Parser<Tok, unit> = pchar'   ','      |>> C >> tok Comma
+let private type'            : Parser<Tok, unit> = pstring' "type"   |>> S >> tok Type
+let private openBrace        : Parser<Tok, unit> = pchar'   '{'      |>> C >> tok OpenBrace
+let private closeBrace       : Parser<Tok, unit> = pchar'   '}'      |>> C >> tok CloseBrace
+let private openParenthesis  : Parser<Tok, unit> = pchar'   '('      |>> C >> tok OpenParenthesis
+let private closeParenthesis : Parser<Tok, unit> = pchar'   ')'      |>> C >> tok CloseParenthesis
+let private forwardPipe      : Parser<Tok, unit> = pstring' "|>"     |>> S >> tok ForwardPipe
+let private backwardPipe     : Parser<Tok, unit> = pstring' "<|"     |>> S >> tok BackwardPipe
+let private forwardArrow     : Parser<Tok, unit> = pstring' "->"     |>> S >> tok ForwardArrow
+let private backwardArrow    : Parser<Tok, unit> = pstring' "<-"     |>> S >> tok BackwardArrow
+let private return'          : Parser<Tok, unit> = pchar'   '\r'     |>> C >> tok Return
+let private xmlCloseTag      : Parser<Tok, unit> = pstring' "/>"     |>> S >> tok XmlCloseTag
 
 let private whitespace : Parser<Tok, unit> = many1Chars' (pchar '\t' <|> pchar ' ') |>> S >> tok Whitespace
 
 // TODO: Add support for verbatim and triple-quoted strings
 let private str : Parser<Tok, unit> = (literalStringInterpolated <|> literalStringPlain) >> (tok LiteralString)
 
-let private other      : Parser<Tok, unit> = many1Satisfy' (isNoneOf ":;=,{}|<>\"\n\r\t ") |>> S >> tok Other
+let private other      : Parser<Tok, unit> = many1Satisfy' (isNoneOf ":;=,{}()|<>\"\n\r\t ") |>> S >> tok Other
 let private otherLoose : Parser<Tok, unit> = many1Satisfy' (isNoneOf "\"\n\r\t "         ) |>> S >> tok Other
 
 let private anyToken =
@@ -130,6 +132,8 @@ let private anyToken =
     <|> type'
     <|> openBrace
     <|> closeBrace
+    <|> openParenthesis
+    <|> closeParenthesis
     <|> forwardPipe
     <|> backwardPipe
     <|> forwardArrow

@@ -350,6 +350,31 @@ module ComplexAlignmentRequired =
         type Ab  = { D : Efg; Hij : Klm } with member this.Nopq = 8
 """
 
+    let[<Literal>] Unaligned16 = """
+        | Abcde _ -> AbcdeThing
+        | AbcdefGhijk _ -> AbcdefGhijkThing
+        | A1bcd (_, x) -> A1bcdThing x
+"""
+
+    let[<Literal>] Realigned16 = """
+        | Abcde       _     -> AbcdeThing
+        | AbcdefGhijk _     -> AbcdefGhijkThing
+        | A1bcd      (_, x) -> A1bcdThing x
+"""
+
+
+    let[<Literal>] Unaligned17 = """
+        | Abcde _ -> AbcdeThing
+        | AbcdefGhijk (_, x) -> AbcdefGhijkThing
+        | A1bcd x -> A1bcdThing x
+"""
+
+    let[<Literal>] Realigned17 = """
+        | Abcde        _     -> AbcdeThing
+        | AbcdefGhijk (_, x) -> AbcdefGhijkThing
+        | A1bcd        x     -> A1bcdThing x
+"""
+
 [<TestCase(NoAlignmentRequired.Empty           , NoAlignmentRequired.Empty             , TestName = "{m}: " + (nameof NoAlignmentRequired.Empty           ))>]
 [<TestCase(NoAlignmentRequired.OneLine         , NoAlignmentRequired.OneLine           , TestName = "{m}: " + (nameof NoAlignmentRequired.OneLine         ))>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , NoAlignmentRequired.WhiteSpaceOnly_Unaligned, TestName = "{m}: " + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
@@ -369,6 +394,8 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned13, ComplexAlignmentRequired.Realigned13  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned13))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned14, ComplexAlignmentRequired.Realigned14  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned14))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned15, ComplexAlignmentRequired.Realigned15  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned15))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned16, ComplexAlignmentRequired.Realigned16  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned16))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned17, ComplexAlignmentRequired.Realigned17  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned17))>]
 let ``Alignment.realignAllExtended, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual =
         before.Split('\n')

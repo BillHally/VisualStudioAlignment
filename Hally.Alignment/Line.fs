@@ -132,7 +132,10 @@ module Line =
     /// Gets the next index for the given token kind.
     ///
     /// However, if aligning either Comma or Other, we don't want to align to tokens on different sides of a token
-    /// which is neither - so only consider tokens which have not been preceded by something else.
+    /// which is neither - so only consider tokens which have not been preceded by something else, except for
+    /// an open parenthesis, which we'll treat specially.
+    ///
+    /// TODO: also treat the start of an array or list literal specially?
     let getNextIndex (startIndex : int) (line : Line) tk : int =
         let rec commaOrOtherLoop xs =
             match xs with
@@ -143,6 +146,7 @@ module Line =
                 else
                     match x.Kind with
                     | Comma
+                    | OpenParenthesis
                     | Other
                     | Whitespace
                     | Return ->
@@ -154,6 +158,7 @@ module Line =
 
         match tk with
         | Comma
+        | OpenParenthesis
         | Other -> commaOrOtherLoop line.Tokens
         | _ ->
             line.Tokens

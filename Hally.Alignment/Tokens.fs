@@ -10,6 +10,8 @@ type TokenKind =
     | Type
     | OpenBrace
     | CloseBrace
+    | OpenParenthesis
+    | CloseParenthesis
     | ForwardPipe
     | BackwardPipe
     | ForwardArrow
@@ -20,8 +22,6 @@ type TokenKind =
     // | And
     // | [
     // | ]
-    // | (
-    // | )
     // | .
     // Operators
     | XmlCloseTag
@@ -40,7 +40,7 @@ type Token =
 
     override this.ToString() =
         let value = $"\"{match this.Kind with Return -> string '⏎' | _ -> this.Value}\""
-        $"%03d{this.Start}-%03d{this.Last}:%13O{this.Kind}: %s{value}"
+        $"%03d{this.Start}-%03d{this.Last}:%17O{this.Kind}: %s{value}"
 
 [<RequireQualifiedAccess>]
 module TokenKind =
@@ -54,6 +54,8 @@ module TokenKind =
         Type
         OpenBrace
         CloseBrace
+        OpenParenthesis
+        CloseParenthesis
         ForwardPipe
         BackwardPipe
         ForwardArrow
@@ -72,6 +74,8 @@ module TokenKind =
         Equals
         OpenBrace
         CloseBrace
+        OpenParenthesis
+        CloseParenthesis
         ForwardPipe
         BackwardPipe
         ForwardArrow
@@ -89,6 +93,8 @@ module TokenKind =
         | ","      -> Comma
         | "{"      -> OpenBrace
         | "}"      -> CloseBrace
+        | "("      -> OpenParenthesis
+        | ")"      -> CloseParenthesis
         | "|>"     -> ForwardPipe
         | "<|"     -> BackwardPipe
         | "->"     -> ForwardArrow

@@ -70,6 +70,8 @@ type AlignmentTarget =
         MaxIndex : int
     }
 
+    override this.ToString() = $"{{ Kind = {this.Kind}; MaxIndex = %2d{this.MaxIndex}; Indices = %A{this.Indices}}}"
+
 /// When passed some lines, we want to identify which kind of token to align next - this is the one which,
 /// when you take the *maximum* of the next index for that kind of token across all the lines, has the *lowest* value.
 let getNextTokenKindToAlignBy shouldAlignLine (startIndex : int) (alignBy : TokenKind[]) (xs : Line[]) : AlignmentTarget option =
@@ -103,7 +105,7 @@ let getNextTokenKindToAlignBy shouldAlignLine (startIndex : int) (alignBy : Toke
                 | _ -> Some acc
         ) None
 
-let private offsetTokens startIndex targetKind offset (tokens : _ list) =
+let private offsetTokens startIndex targetKind offset (tokens : Token list) =
     let rec loop tokens addOffset (acc : _ list) =
         match tokens with
         | [] -> acc
@@ -120,7 +122,13 @@ let private offsetTokens startIndex targetKind offset (tokens : _ list) =
                 if addOffset then
                     { t with Start = t.Start + offset }, addOffset
                 else if next.Start >= startIndex && next.Kind = targetKind then
-                    { t with Value = t.Value + String(' ', offset) }, true
+                    let value =
+                        if t.Kind = OpenParenthesis then
+                            String(' ', offset) + t.Value
+                        else
+                            t.Value + String(' ', offset)
+
+                    { t with Value = value }, true
                 else
                     t, addOffset
 
