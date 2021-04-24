@@ -114,6 +114,8 @@ let private backwardArrow    : Parser<Tok, unit> = pstring' "<-"     |>> S >> to
 let private return'          : Parser<Tok, unit> = pchar'   '\r'     |>> C >> tok Return
 let private xmlCloseTag      : Parser<Tok, unit> = pstring' "/>"     |>> S >> tok XmlCloseTag
 
+let private lineComment      : Parser<Tok, unit> = withIndex (pipe2 (pstring "//")  (manyChars (noneOf "\r\n")) (+))    |>> S >> tok LineComment
+
 let private whitespace : Parser<Tok, unit> = many1Chars' (pchar '\t' <|> pchar ' ') |>> S >> tok Whitespace
 
 // TODO: Add support for verbatim and triple-quoted strings
@@ -140,6 +142,7 @@ let private anyToken =
     <|> backwardArrow
     <|> str
     <|> xmlCloseTag
+    <|> lineComment
     <|> return'
     <|> whitespace
     <|> other      // Catch other things, but without greedily eating trailing comma etc.

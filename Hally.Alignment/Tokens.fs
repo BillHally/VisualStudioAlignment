@@ -25,6 +25,7 @@ type TokenKind =
     // | .
     // Operators
     | XmlCloseTag
+    | LineComment
     | Return
     | Whitespace
     | Other
@@ -39,7 +40,7 @@ type Token =
     member this.Last = this.Start + this.Value.Length - 1
 
     override this.ToString() =
-        let value = $"\"{match this.Kind with Return -> string '⏎' | _ -> this.Value}\""
+        let value = this.Value.Replace('\r', '⏎').Replace('\n', '←')
         $"%03d{this.Start}-%03d{this.Last}:%17O{this.Kind}: %s{value}"
 
 [<RequireQualifiedAccess>]
@@ -62,6 +63,7 @@ module TokenKind =
         BackwardArrow
         LiteralString
         XmlCloseTag
+        LineComment
         Other
     |]
 
@@ -82,6 +84,7 @@ module TokenKind =
         BackwardArrow
         LiteralString
         XmlCloseTag
+        LineComment
     |]
 
     let ofString = function

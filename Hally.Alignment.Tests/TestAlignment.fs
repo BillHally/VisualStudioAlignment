@@ -362,7 +362,6 @@ module ComplexAlignmentRequired =
         | A1bcd      (_, x) -> A1bcdThing x
 """
 
-
     let[<Literal>] Unaligned17 = """
         | Abcde _ -> AbcdeThing
         | AbcdefGhijk (_, x) -> AbcdefGhijkThing
@@ -373,6 +372,39 @@ module ComplexAlignmentRequired =
         | Abcde        _     -> AbcdeThing
         | AbcdefGhijk (_, x) -> AbcdefGhijkThing
         | A1bcd        x     -> A1bcdThing x
+"""
+
+    let[<Literal>] Unaligned18 = """
+let a = b // Comments shouldn't be aligned at all, even when they contain colons like this:
+let cd : int = efg // In fact, code should be left alone if it's commented out, like:
+// let whatever = something               else
+"""
+
+    let[<Literal>] Realigned18 = """
+let a        = b   // Comments shouldn't be aligned at all, even when they contain colons like this:
+let cd : int = efg // In fact, code should be left alone if it's commented out, like:
+// let whatever = something               else
+"""
+
+    let[<Literal>] Unaligned19 = """
+    let abc = UMX.tag<u12> abc
+    let defg = UMX.tag<u> defgh
+"""
+
+    let[<Literal>] Realigned19 = """
+    let abc  = UMX.tag<u12> abc
+    let defg = UMX.tag<u>   defgh
+"""
+
+
+    let[<Literal>] Unaligned20 = """
+    let abc = defghi :> IThing
+    let jk   = lmn       :> IAnotherThing
+"""
+
+    let[<Literal>] Realigned20 = """
+    let abc = defghi :> IThing
+    let jk  = lmn    :> IAnotherThing
 """
 
 [<TestCase(NoAlignmentRequired.Empty           , NoAlignmentRequired.Empty             , TestName = "{m}: " + (nameof NoAlignmentRequired.Empty           ))>]
@@ -396,6 +428,9 @@ module ComplexAlignmentRequired =
 [<TestCase(ComplexAlignmentRequired.Unaligned15, ComplexAlignmentRequired.Realigned15  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned15))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned16, ComplexAlignmentRequired.Realigned16  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned16))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned17, ComplexAlignmentRequired.Realigned17  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned17))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned18, ComplexAlignmentRequired.Realigned18  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned18))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned19, ComplexAlignmentRequired.Realigned19  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned19))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned20, ComplexAlignmentRequired.Realigned20  , TestName = "{m}: " + (nameof ComplexAlignmentRequired.Unaligned20))>]
 let ``Alignment.realignAllExtended, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual =
         before.Split('\n')
