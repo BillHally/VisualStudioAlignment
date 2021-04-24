@@ -167,20 +167,7 @@ module Line =
 
     let toString (x : Line) : string =
         let sb = StringBuilder(x.Length)
-        let mutable current = 0
 
-        for t in x.Tokens do
-            // If necessary, add padding
-            match t.Kind with
-            | Whitespace
-            | Return -> ()
-            | _ ->
-                sb.Append(String(' ', t.Start - current)) |> ignore
-
-            // Add the token
-            sb.Append(t.Value) |> ignore
-
-            // Record where we're up to
-            current <- t.Last + 1
+        for t in x.Tokens do sb.Append(t.Value) |> ignore
 
         sb.ToString()

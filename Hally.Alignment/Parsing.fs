@@ -60,13 +60,16 @@ module private Tok =
             Start = int x.Start
         }
 
+// TODO: rename
 let private withIndex (p : Parser<'r, unit>) (stream : CharStream<unit>) : Reply<'r * int64> =
     let start = stream.Index
     let reply = p stream
 
     match reply.Status with
-    | ReplyStatus.Ok -> Reply((reply.Result, start))
-    | _              -> Reply(reply.Status, reply.Error)
+    | ReplyStatus.Ok ->
+        Reply((reply.Result, start))
+    | _ ->
+        Reply(reply.Status, reply.Error)
 
 let private pchar'        x = withIndex (pchar        x)
 let private pstring'      x = withIndex (pstring      x)
@@ -107,6 +110,7 @@ let private backwardPipe  : Parser<Tok, unit> = pstring' "<|"     |>> S >> tok B
 let private forwardArrow  : Parser<Tok, unit> = pstring' "->"     |>> S >> tok ForwardArrow
 let private backwardArrow : Parser<Tok, unit> = pstring' "<-"     |>> S >> tok BackwardArrow
 let private return'       : Parser<Tok, unit> = pchar'   '\r'     |>> C >> tok Return
+let private xmlCloseTag   : Parser<Tok, unit> = pstring' "/>"     |>> S >> tok XmlCloseTag
 
 let private whitespace : Parser<Tok, unit> = many1Chars' (pchar '\t' <|> pchar ' ') |>> S >> tok Whitespace
 
@@ -131,6 +135,7 @@ let private anyToken =
     <|> forwardArrow
     <|> backwardArrow
     <|> str
+    <|> xmlCloseTag
     <|> return'
     <|> whitespace
     <|> other      // Catch other things, but without greedily eating trailing comma etc.
@@ -140,7 +145,7 @@ let private tokenize = many anyToken
 
 module private ParserResult =
     let tryGetTokens = function
-        | Success (xs, (), _) ->
+        | Success (xs : Tok list, (), _) ->
             xs
             |> List.map Tok.toToken
             |> Result.Ok

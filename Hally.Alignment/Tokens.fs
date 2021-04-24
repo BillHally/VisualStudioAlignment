@@ -24,6 +24,7 @@ type TokenKind =
     // | )
     // | .
     // Operators
+    | XmlCloseTag
     | Return
     | Whitespace
     | Other
@@ -39,7 +40,7 @@ type Token =
 
     override this.ToString() =
         let value = $"\"{match this.Kind with Return -> string '⏎' | _ -> this.Value}\""
-        $"%02d{this.Start}-%02d{this.Last} %-10s{value} {this.Kind}"
+        $"%03d{this.Start}-%03d{this.Last}:%13O{this.Kind}: %s{value}"
 
 [<RequireQualifiedAccess>]
 module TokenKind =
@@ -58,6 +59,7 @@ module TokenKind =
         ForwardArrow
         BackwardArrow
         LiteralString
+        XmlCloseTag
         Other
     |]
 
@@ -75,6 +77,7 @@ module TokenKind =
         ForwardArrow
         BackwardArrow
         LiteralString
+        XmlCloseTag
     |]
 
     let ofString = function
@@ -90,6 +93,7 @@ module TokenKind =
         | "<|"     -> BackwardPipe
         | "->"     -> ForwardArrow
         | "<-"     -> BackwardArrow
+        | "/>"     -> XmlCloseTag
         | "type"   -> Type
         | "\r"     -> Return
         | _        -> Other

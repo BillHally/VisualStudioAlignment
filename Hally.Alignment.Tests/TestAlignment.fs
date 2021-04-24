@@ -5,6 +5,20 @@ open Hally.Alignment
 open NUnit.Framework
 open FsUnitTyped
 
+let dump before actual expected =
+    printfn $"Before:"
+    printfn $"000000000011111111112222222222333333333344444444445"
+    printfn $"012345678901234567890123456789012345678901234567890"
+    printfn $"{before}"
+    printfn $"Actual  :"
+    printfn $"000000000011111111112222222222333333333344444444445"
+    printfn $"012345678901234567890123456789012345678901234567890"
+    printfn $"{actual}"
+    printfn $"Expected:"
+    printfn $"000000000011111111112222222222333333333344444444445"
+    printfn $"012345678901234567890123456789012345678901234567890"
+    printfn $"{expected}"
+
 [<RequireQualifiedAccess>]
 module NoAlignmentRequired =
     let [<Literal>] Empty = ""
@@ -126,6 +140,23 @@ module AlignByOther =
     ghi jklm nop q
 """
 
+[<RequireQualifiedAccess>]
+module Xml =
+    let [<Literal>] Before00    = """
+        <IDSymbol   name="AlignmentMenu"      value="0x2000"         />
+        <IDSymbol     name="AlignmentMenuGroup" value="0x2100"         />
+"""
+
+    let [<Literal>] Unaligned00 = """
+        <IDSymbol name="AlignmentMenu" value="0x2000" />
+        <IDSymbol name="AlignmentMenuGroup" value="0x2100" />
+"""
+
+    let [<Literal>] Realigned00 = """
+        <IDSymbol name = "AlignmentMenu"      value="0x2000" />
+        <IDSymbol name = "AlignmentMenuGroup" value="0x2100" />
+"""
+
 [<TestCase(NoAlignmentRequired.Empty         , "=", NoAlignmentRequired.Empty         , TestName = "Alignment.align " + (nameof NoAlignmentRequired.Empty         ))>]
 [<TestCase(NoAlignmentRequired.OneLine       , "=", NoAlignmentRequired.OneLine       , TestName = "Alignment.align " + (nameof NoAlignmentRequired.OneLine       ))>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly, "=", NoAlignmentRequired.WhiteSpaceOnly, TestName = "Alignment.align " + (nameof NoAlignmentRequired.WhiteSpaceOnly))>]
@@ -141,10 +172,7 @@ module AlignByOther =
 let ``Alignment.align, when passed a substring, aligns the lines it is passed at every occurrence of that substring`` (before : string) (substring : string) (after : string) =
     let actual = Alignment.align substring before
 
-    //printfn "0123456789012345678901234567890"
-    //printfn $"Before  :\n012345678901234567890\n{before}"
-    //printfn $"Actual  :\n012345678901234567890\n{actual}"
-    //printfn $"Expected:\n012345678901234567890\n{after}"
+    //dump before actual after
 
     actual |> shouldEqual after
 
@@ -160,13 +188,11 @@ let ``Alignment.align, when passed a substring, aligns the lines it is passed at
 [<TestCase(AlignByComma.Comma_A_00_00_08     , AlignByComma.Comma_U_00                     , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_00_08     ))>]
 [<TestCase(AlignByComma.Comma_A_00_00_16     , AlignByComma.Comma_U_00                     , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_00_16     ))>]
 [<TestCase(AlignByComma.Comma_A_00_08_16     , AlignByComma.Comma_U_00                     , TestName = "Alignment.unalign: " + (nameof AlignByComma       ) + "." + (nameof AlignByComma.Comma_A_00_08_16     ))>]
+[<TestCase(Xml.Before00                      , Xml.Unaligned00                             , TestName = "Alignment.unalign: " + (nameof Xml                ) + "." + (nameof Xml.Before00                      ))>]
 let ``Alignment.unalign, unaligns the lines it is passed from after the indent to the end of the line`` (before : string) (after : string) =
     let actual = before |> Alignment.unalign
 
-    //printfn "0123456789012345678901234567890"
-    //printfn $"Before  :\n012345678901234567890\n{before}"
-    //printfn $"Actual  :\n012345678901234567890\n{actual}"
-    //printfn $"Expected:\n012345678901234567890\n{after}"
+    //dump before actual after
 
     actual |> shouldEqual after
 
@@ -178,14 +204,18 @@ let ``Alignment.unalign, unaligns the lines it is passed from after the indent t
 [<TestCase(AlignByComma.Comma_U_00        , 8, ",", "-1;9;13;-1" , TestName = "Alignment.getNextIndices " + (nameof AlignByComma.Comma_U_00        ) + ", {1}, {2}")>]
 [<TestCase(AlignByOther.Other_U_00        , 0, "" ,  "-1;4;4;-1" , TestName = "Alignment.getNextIndices " + (nameof AlignByOther.Other_U_00        ) + ", {1}, {2}")>]
 [<TestCase(AlignByOther.Other_U_00        , 5, "" ,  "-1;6;8;-1" , TestName = "Alignment.getNextIndices " + (nameof AlignByOther.Other_U_00        ) + ", {1}, {2}")>]
-let ``Alignment.getNextIndices always returns the expected index`` (x : string) (startIndex : int) (alignBy : string) (expected : string) =
+let ``Alignment.getNextIndices always returns the expected index`` (before : string) (startIndex : int) (alignBy : string) (expected : string) =
+
+    let actual =
+        before.Split('\n')
+        |> Array.map Line.ofString
+        |> Alignment.getNextIndices startIndex [| TokenKind.ofString alignBy |]
+
+    //dump before actual expected
+
     let expected = expected.Split(';') |> Array.map (fun x -> [| int x |])
 
-    x.Split('\n')
-    |> Array.map Line.ofString
-    //|> (fun xs -> Array.iter (fun x -> printfn $"Tokens: {x}") xs; xs)
-    |> Alignment.getNextIndices startIndex [| TokenKind.ofString alignBy |]
-    |> shouldEqual expected
+    actual |> shouldEqual expected
 
 [<RequireQualifiedAccess>]
 module ComplexAlignmentRequired =
@@ -345,10 +375,7 @@ let ``Alignment.realignAllExtended, always removes excess whitespace and aligns 
         |> Alignment.realignAllExtended
         |> String.concat "\n"
 
-    //printfn "0123456789012345678901234567890"
-    //printfn $"Before  :\n012345678901234567890\n{before}"
-    //printfn $"Actual  :\n012345678901234567890\n{actual}"
-    //printfn $"Expected:\n012345678901234567890\n{after}"
+    //dump before actual after
 
     actual |> shouldEqual after
 
@@ -373,10 +400,7 @@ let ``Alignment.realignAll, always removes excess whitespace and aligns by all r
         |> Alignment.realignAll
         |> String.concat "\n"
 
-    //printfn "0123456789012345678901234567890"
-    //printfn $"Before  :\n012345678901234567890\n{before}"
-    //printfn $"Actual  :\n012345678901234567890\n{actual}"
-    //printfn $"Expected:\n012345678901234567890\n{after}"
+    //dump before actual after
 
     actual |> shouldEqual after
 
@@ -444,9 +468,6 @@ let ``Alignment.realignToFirstLine, always removes excess whitespace and aligns 
         |> Alignment.realignToFirstLineExtended
         |> String.concat "\n"
 
-    //printfn "0123456789012345678901234567890"
-    //printfn $"Before  :\n012345678901234567890\n{before}"
-    //printfn $"Actual  :\n012345678901234567890\n{actual}"
-    //printfn $"Expected:\n012345678901234567890\n{after}"
+    //dump before actual after
 
     actual |> shouldEqual after

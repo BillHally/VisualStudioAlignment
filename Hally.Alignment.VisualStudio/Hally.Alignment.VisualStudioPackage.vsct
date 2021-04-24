@@ -38,7 +38,7 @@
         <Parent guid="guidCmdSet" id="EditMenuGroup" />
         <CommandFlag>AlwaysCreate</CommandFlag>
         <Strings>
-          <ButtonText>Code A&amp;lignment</ButtonText>
+          <ButtonText>Schmode A&amp;lignment</ButtonText>
         </Strings>
       </Menu>
     </Menus>
@@ -210,12 +210,14 @@
     <!-- The guid used to group the menu commands together -->
     <GuidSymbol name="guidCmdSet" value="{7404ba69-b772-4931-8783-7d904aefa62c}">
 
-      <!-- Menu groups -->
-      <IDSymbol name="EditMenuGroup"      value="0x1000" />
-      <IDSymbol name="AlignmentMenuGroup" value="0x2100" />
+      <!-- Edit Menu: groups -->
+      <IDSymbol name="EditMenuGroup" value="0x1000" />
 
-      <!-- Menus -->
-      <IDSymbol name="AlignmentMenu" value="0x2000" />
+      <!-- Alignment menu -->
+      <IDSymbol name="AlignmentMenu"     value="0x2000" />
+
+      <!-- Alignment menu -->
+      <IDSymbol name="AlignmentMenuGroup" value="0x2100" />
 
       <!-- Command IDs -->
       <IDSymbol name="AlignCommandId"                    value="0x2110" />

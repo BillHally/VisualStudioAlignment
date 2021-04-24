@@ -3,41 +3,47 @@ module Hally.Alignment.Alignment
 
 open System
 
+type System.Collections.Generic.List<'a> with
+    member this.GetReverseIndex(rank, i) = this.Count - 1 - i
+
 let unalignLines (lines : Line[]) : Line[] =
 
     Array.init lines.Length
         (fun i ->
-            let tokens = lines.[i].Tokens |> List.filter (fun x -> x.Kind <> Whitespace)
+            let tokens = lines.[i].Tokens
 
             let updated = ResizeArray()
 
             for i in 0..(tokens.Length - 1) do
                 if i = 0 then
-                    tokens.[0]
+                    // Preserve the indent by keeping the first token unchanged
+                    updated.Add(tokens.[0])
                 else
-                    let previous = updated.[i - 1]
+                    let previous = updated.[^0]
 
                     let t = tokens.[i]
 
-                    let start =
-                        match previous.Kind, t.Kind with
-                        | _         , Comma
-                        | _         , SemiColon
-                        // | Colon // TODO: support no leading space for Colon?. What about other token kinds?
-                        | _         , Whitespace
-                        | _         , Return
-                        | Whitespace, _
-                        | Return    , _ -> previous.Last + 1
-                        | _         , _ -> previous.Last + 2
+                    let t =
+                        match t.Kind with
+                        | Whitespace -> { t with Value = " " }
+                        | _ -> t
 
-                    {
-                        t with
-                            Start = start
-                    }
-                |> updated.Add
+                    let replace, start =
+                        match previous.Kind, t.Kind with
+                        | Whitespace, Whitespace
+                        | Whitespace, Comma -> true, previous.Start
+                        | _         , _ -> false, previous.Last + 1
+
+                    if replace then updated.RemoveAt(updated.Count - 1)
+                    updated.Add({ t with Start = start })
 
             {
-                Tokens = List.ofSeq updated
+                Tokens =
+                    let ts = List.ofSeq updated
+                    match ts with
+                    | [ x    ] when x.Kind = Whitespace -> []
+                    | [ x; y ] when x.Kind = Whitespace && y.Kind = Return -> [ y ]
+                    | xs -> xs
             }
         )
 
@@ -66,8 +72,11 @@ type AlignmentTarget =
 
 /// When passed some lines, we want to identify which kind of token to align next - this is the one which,
 /// when you take the *maximum* of the next index for that kind of token across all the lines, has the *lowest* value.
-let getNextTokenKindToAlignBy (startIndex : int) (alignBy : TokenKind[]) (xs : Line[]) : AlignmentTarget option =
-    let indicesByLine = xs |> getNextIndices startIndex alignBy
+let getNextTokenKindToAlignBy shouldAlignLine (startIndex : int) (alignBy : TokenKind[]) (xs : Line[]) : AlignmentTarget option =
+    let indicesByLine =
+        xs
+        |> Array.map (fun x -> if shouldAlignLine x then x else { Tokens = [] })
+        |> getNextIndices startIndex alignBy
 
     [|
         for i in 0..(alignBy.Length - 1) do
@@ -94,9 +103,33 @@ let getNextTokenKindToAlignBy (startIndex : int) (alignBy : TokenKind[]) (xs : L
                 | _ -> Some acc
         ) None
 
+let private offsetTokens startIndex targetKind offset (tokens : _ list) =
+    let rec loop tokens addOffset (acc : _ list) =
+        match tokens with
+        | [] -> acc
+        | [t] ->
+            let t =
+                if addOffset then
+                    { t with Start = t.Start + offset }
+                else
+                    t
+
+            loop [] addOffset (t::acc)
+        | t::next::xs ->
+            let t, addOffset =
+                if addOffset then
+                    { t with Start = t.Start + offset }, addOffset
+                else if next.Start >= startIndex && next.Kind = targetKind then
+                    { t with Value = t.Value + String(' ', offset) }, true
+                else
+                    t, addOffset
+
+            loop (next::xs) addOffset (t::acc)
+
+    loop tokens false [] |> List.rev
+
 let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKind[]) (lines : Line[]) already : Line[] =
-    let tokenLines = lines |> Array.map (fun x -> if shouldAlignLine x then x else { Tokens = [] }) // TODO: Improve this
-    match getNextTokenKindToAlignBy startIndex alignBy tokenLines with
+    match getNextTokenKindToAlignBy shouldAlignLine startIndex alignBy lines with
     | None -> lines
     | Some a ->
         let updated =
@@ -114,24 +147,10 @@ let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKin
                         line
                     else
                         // If appropriate, pad the difference between the actual index for this line and the max index
-                        let padding = a.MaxIndex - n
-
-                        let mutable addPadding = false
+                        let offset = a.MaxIndex - n
 
                         {
-                            Tokens =
-                                List.init line.Tokens.Length (fun i ->
-                                    let t = line.Tokens.[i]
-
-                                    if addPadding || t.Start >= startIndex && t.Kind = a.Kind then
-                                        addPadding <- true
-                                        {
-                                            t with
-                                                Start = t.Start + padding
-                                        }
-                                    else
-                                        t
-                                )
+                            Tokens = offsetTokens startIndex a.Kind offset line.Tokens
                         }
             )
 
@@ -139,10 +158,13 @@ let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKin
 
 let private always (_ : Line) = true
 
-let private ifFirstTokenIsSameKindAs (target : Line) (x : Line) : bool =
-    match target.Tokens, x.Tokens with
-    | x::_, y::_ -> x.Kind = y.Kind
-    | _   , _    -> false
+let private firstNonWhitespaceToken (x : Line) : TokenKind option =
+    x.Tokens |> Seq.tryPick (fun x -> match x.Kind with Whitespace -> None | k -> Some k)
+
+let private ifFirstNonWhitespaceTokenIsSameKindAs (target : Line) =
+    let targetKind = firstNonWhitespaceToken target
+
+    fun (x : Line) -> targetKind = (firstNonWhitespaceToken x)
 
 let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     if lines.Length > 1 then
@@ -152,7 +174,7 @@ let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
 
 let alignToFirstLine (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     if lines.Length > 1 then
-        alignFrom (ifFirstTokenIsSameKindAs lines.[0]) 0 alignBy lines Set.empty
+        alignFrom (ifFirstNonWhitespaceTokenIsSameKindAs lines.[0]) 0 alignBy lines Set.empty
     else
         lines
 
