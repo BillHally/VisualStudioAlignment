@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="Hally.Alignment.VisualStudio.4ee69823-4f9c-410b-8bc1-c04f0c6edf7d" Version="0.1.15" Language="en-US" Publisher="Bill Hally" />
+    <Identity Id="Hally.Alignment.VisualStudio.4ee69823-4f9c-410b-8bc1-c04f0c6edf7d" Version="0.1.16" Language="en-US" Publisher="Bill Hally" />
     <DisplayName>Hally.Alignment.VisualStudio</DisplayName>
     <Description xml:space="preserve">Code alignment</Description>
     <Preview>true</Preview>
