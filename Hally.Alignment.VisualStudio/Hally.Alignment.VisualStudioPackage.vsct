@@ -38,7 +38,7 @@
         <Parent guid="guidCmdSet" id="EditMenuGroup" />
         <CommandFlag>AlwaysCreate</CommandFlag>
         <Strings>
-          <ButtonText>Schmode A&amp;lignment</ButtonText>
+          <ButtonText>Line A&amp;lignment</ButtonText>
         </Strings>
       </Menu>
     </Menus>
