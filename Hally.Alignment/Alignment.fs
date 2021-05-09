@@ -169,10 +169,29 @@ let private always (_ : Line) = true
 let private firstNonWhitespaceToken (x : Line) : TokenKind option =
     x.Tokens |> Seq.tryPick (fun x -> match x.Kind with Whitespace -> None | k -> Some k)
 
-let private ifFirstNonWhitespaceTokenIsSameKindAs (target : Line) =
-    let targetKind = firstNonWhitespaceToken target
+let private indentLength (x : Line) : int =
+    match x.Tokens with
+    | [] -> 0
+    | x::_ ->
+        match x.Kind with
+        | Whitespace -> x.Value.Length
+        | _          -> 0
 
-    fun (x : Line) -> targetKind = (firstNonWhitespaceToken x)
+let private isFirstNonWhitespaceTokenKindSameAs (target : Line) =
+    match firstNonWhitespaceToken target with
+    | None -> fun _ -> false // There is no 1st non-whitespace token TODO: add a test for this
+    | Some targetKind ->
+        let targetIndent = indentLength target
+
+        fun (x : Line) ->
+            targetIndent = indentLength x &&
+            Some targetKind = firstNonWhitespaceToken x
+
+[<CompiledName("LinesMatch")>]
+let linesMatch (target : string, line : string) =
+    let target = Line.ofString target
+    let line   = Line.ofString line
+    isFirstNonWhitespaceTokenKindSameAs target line
 
 let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     if lines.Length > 1 then
@@ -182,7 +201,7 @@ let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
 
 let alignToFirstLine (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     if lines.Length > 1 then
-        alignFrom (ifFirstNonWhitespaceTokenIsSameKindAs lines.[0]) 0 alignBy lines
+        alignFrom (isFirstNonWhitespaceTokenKindSameAs lines.[0]) 0 alignBy lines
     else
         lines
 

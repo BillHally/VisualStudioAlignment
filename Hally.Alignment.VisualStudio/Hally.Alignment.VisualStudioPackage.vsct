@@ -69,63 +69,42 @@
           If you do not want an image next to your command, remove the Icon node /> -->
       <Button guid="guidCmdSet" id="AlignCommandId" priority="0x0110" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>&amp;Align Lines</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="AlignExtendedCommandId" priority="0x0120" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Align Lines (&amp;Include Extended Tokens)</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="RealignCommandId" priority="0x0130" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>&amp;Realign Lines</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="RealignExtendedCommandId" priority="0x0140" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Realign Lines (Include &amp;Extended Tokens)</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="AlignToFirstLineCommandId" priority="0x0150" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Align Lines to &amp;First Line</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="AlignToFirstLineExtendedCommandId" priority="0x0160" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>Align Lines to First Line (Include Extended &amp;Tokens)</ButtonText>
         </Strings>
       </Button>
       <Button guid="guidCmdSet" id="UnalignCommandId" priority="0x0170" type="Button">
         <Parent guid="guidCmdSet" id="AlignmentMenuGroup" />
-        <CommandFlag>DynamicVisibility</CommandFlag>
-        <CommandFlag>DefaultDisabled</CommandFlag>
-        <CommandFlag>DefaultInvisible</CommandFlag>
         <Strings>
           <ButtonText>&amp;Unalign Lines</ButtonText>
         </Strings>

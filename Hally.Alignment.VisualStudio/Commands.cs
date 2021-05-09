@@ -21,10 +21,8 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 
 using Microsoft.VisualStudio.Shell;
-using Microsoft.VisualStudio.Shell.Interop;
 
 using Task = System.Threading.Tasks.Task;
-using System;
 
 namespace Hally.Alignment.VisualStudio
 {
@@ -48,6 +46,10 @@ namespace Hally.Alignment.VisualStudio
         private const int RealignToFirstLineExtendedId = 0x2160;
         private const int UnalignId                    = 0x2170;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        // Command bindings: these look unused - because no code references them - but they're responsible for connecting the IDs
+        // above (which must match the values in the .vsct file) to the specific .*Args class, and so to the specific .*CommandHandler
+        // type (there's one for each .*Args type).
         [Export]
         [CommandBinding(CommandSetValue, AlignId, typeof(AlignArgs))]
         internal CommandBindingDefinition alignBinding;
@@ -70,14 +72,21 @@ namespace Hally.Alignment.VisualStudio
 
         [Export]
         [CommandBinding(CommandSetValue, RealignToFirstLineExtendedId, typeof(RealignToFirstLineExtendedArgs))]
-        internal CommandBindingDefinition raalignToFirstLineExtendedBinding;
+        internal CommandBindingDefinition realignToFirstLineExtendedBinding;
 
         [Export]
         [CommandBinding(CommandSetValue, UnalignId, typeof(UnalignArgs))]
         internal CommandBindingDefinition unalignBinding;
+#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     }
 
-    public abstract class AlignmentCommandHandler<TEditorCommandArgs> : ICommandHandler<TEditorCommandArgs> where TEditorCommandArgs : EditorCommandArgs
+    public interface ILogger
+    {
+        void Debug(string message);
+    }
+
+    public abstract class AlignmentCommandHandler<TEditorCommandArgs>
+        : ILogger, ICommandHandler<TEditorCommandArgs> where TEditorCommandArgs : EditorCommandArgs
     {
         protected AlignmentCommandHandler(string displayName, Func<string[], string[]> align)
         {
@@ -87,23 +96,32 @@ namespace Hally.Alignment.VisualStudio
 
         [Import]
         private IEditorOperationsFactoryService EditorOperations = null;
+
+        [Import]
+        private SVsServiceProvider ServiceProvider = null;
+
         private readonly Func<string[], string[]> align;
 
         public string DisplayName { get; }
 
         public CommandState GetCommandState(TEditorCommandArgs args)
         {
-            return args.TextView.Selection.IsEmpty ? CommandState.Unavailable : CommandState.Available;
+            return CommandState.Available;
         }
 
         public bool ExecuteCommand(TEditorCommandArgs args, CommandExecutionContext context)
         {
             using (context.OperationContext.AddScope(allowCancellation: false, description: "Aligning selected lines"))
             {
-                AlignLines.ProcessSelectedLines(args.TextView, EditorOperations.GetEditorOperations(args.TextView), align);
+                AlignLines.ProcessSelectedLines(this, args.TextView, EditorOperations.GetEditorOperations(args.TextView), align);
             }
 
             return true;
+        }
+
+        public void Debug(string message)
+        {
+            AlignmentVisualStudioPackage.WriteToOutputPane(ServiceProvider, message + "\n");
         }
     }
 

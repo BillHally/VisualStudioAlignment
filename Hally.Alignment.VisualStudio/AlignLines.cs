@@ -31,32 +31,81 @@ namespace Hally.Alignment.VisualStudio
         }
     }
 
-    public record SelectedLines(string[] Lines, bool IsReversed)
+    public record SelectedLines(string[] Lines, int[] LineIndices, bool IsReversed)
     {
-        public static SelectedLines Empty => new SelectedLines(Array.Empty<string>(), false);
+        public static SelectedLines Empty => new SelectedLines(Array.Empty<string>(), Array.Empty<int>(), false);
 
         public int Length => Lines.Length;
+
+        public override string ToString()
+        {
+            return String.Join(", ", LineIndices);
+        }
     }
 
     public static class AlignLines
     {
-        public static SelectedLines GetSelectedLines(ITextView textView, IEditorOperations editorOperations)
+        public static SelectedLines GetSelectedLines(ILogger logger, ITextView textView, IEditorOperations editorOperations)
         {
             var selection = textView.Selection;
+
+            logger.Debug($"Selection.IsActive  : {selection.IsActive}\n");
+            logger.Debug($"Selection.IsEmpty   : {selection.IsEmpty}\n");
+            logger.Debug($"Selection.Mode = Box: {selection.Mode == TextSelectionMode.Box}\n");
 
             if (!selection.IsActive)
             {
                 // TODO: check whether this test is necessary (i.e. if false, is this method ever invoked?)
                 return SelectedLines.Empty;
             }
-
-            if (selection.IsEmpty)
+            else if (selection.IsEmpty)
             {
-                // TODO: do something sensible when there's no selection
-                return SelectedLines.Empty;
-            }
+                // 1. There's no selection, so, first of all, get the current line
+                var textSnapshot = textView.TextSnapshot;
+                var initialLineNumber = textSnapshot.GetLineNumberFromPosition(textView.Caret.Position.BufferPosition);
+                var initialLine = textSnapshot.GetLineFromLineNumber(initialLineNumber).GetText();
 
-            if (selection.Mode == TextSelectionMode.Box)
+                // 2. Find lines immediately above the current one which "match" the current line
+                var currentLineNumber = initialLineNumber;
+
+                for (
+                    var i = initialLineNumber - 1;
+                    i >= 0 &&
+                    Alignment.LinesMatch(initialLine, textSnapshot.GetLineFromLineNumber(i).GetText());
+                    --i
+                ) {
+                    currentLineNumber = i;
+                }
+                var firstLineIndex = currentLineNumber;
+
+                // 3. Find lines immediately below the current one which "match" the current line
+                currentLineNumber = initialLineNumber; // Reset currentLineNumber
+                for (
+                    var i = initialLineNumber + 1;
+                    i < textSnapshot.LineCount &&
+                    Alignment.LinesMatch(initialLine, textSnapshot.GetLineFromLineNumber(i).GetText());
+                    ++i
+                ) {
+                    currentLineNumber = i;
+                }
+
+                var lastLineIndex = currentLineNumber;
+
+                // 4. Get all the relevant lines and return them
+                var lines = new string[lastLineIndex - firstLineIndex + 1]; // Note: despite this declaring non-nullable strings, it's initialized with nulls!
+                var lineIndices = new int[lines.Length];
+
+                for (var i = 0; i < lines.Length; ++i)
+                {
+                    var lineIndex = firstLineIndex + i;
+                    var line = textSnapshot.GetLineFromLineNumber(lineIndex);
+                    lines[i]   = line.GetTextIncludingLineBreak().Trim('\n');
+                    lineIndices[i] = lineIndex;
+                }
+
+                return new SelectedLines(lines, lineIndices, IsReversed: false);
+            }
+            else if (selection.Mode == TextSelectionMode.Box)
             {
                 // It's a "Box" selection i.e. there are multiple selection spans - 1 per line
                 var lines = new string[selection.SelectedSpans.Count];
@@ -67,7 +116,7 @@ namespace Hally.Alignment.VisualStudio
                     lines[i] = selectedSpan.GetText();
                 }
 
-                return new SelectedLines(lines, selection.IsReversed);
+                return new SelectedLines(lines, Array.Empty<int>(), IsReversed: selection.IsReversed);
             }
             else
             {
@@ -75,41 +124,41 @@ namespace Hally.Alignment.VisualStudio
                 var selectedSpan = selection.SelectedSpans[0];
                 var start = selectedSpan.Span.Start;
 
-                var isReversed = selection.IsReversed;
-
                 // If necessary, extend the selection to the start of the first line of the selection, so that columns
                 // of the all the lines in the selection match up
                 var textLine = selection.Start.Position.GetContainingLine();
                 if (textLine.Start.Position != start)
                 {
-                    selectedSpan = new SnapshotSpan(selectedSpan.Snapshot, textLine.Start.Position, start - textLine.Start.Position + selectedSpan.Length);
-                    textView.Selection.Select(selectedSpan, isReversed);
+                    selectedSpan =
+                        new SnapshotSpan(
+                            selectedSpan.Snapshot,
+                            textLine.Start.Position,
+                            start - textLine.Start.Position + selectedSpan.Length
+                        );
+
+                    textView.Selection.Select(selectedSpan, selection.IsReversed);
                 }
 
                 var text = selectedSpan.GetText();
                 var lines = text.Split('\n');
-
-                return new SelectedLines(lines, isReversed);
+                return new SelectedLines(lines, Array.Empty<int>(), IsReversed: selection.IsReversed);
             }
         }
 
-        public static void ProcessSelectedLines(ITextView textView, IEditorOperations editorOperations, Func<string[], string[]> align)
+        public static void ProcessSelectedLines(ILogger logger, ITextView textView, IEditorOperations editorOperations, Func<string[], string[]> align)
         {
-#if DEBUG
-            var logs = new List<string>();
             try
             {
-#endif
-                var lines = GetSelectedLines(textView, editorOperations);
+                var lines = GetSelectedLines(logger, textView, editorOperations);
 
                 if (lines.Length == 0)
                 {
+                    // Nothing to do
                     return;
                 }
                 else
                 {
                     var selection    = textView.Selection;
-                    var isReversed   = selection.IsReversed;
                     var updatedLines = align.Invoke(lines.Lines);
 
                     if (selection.Mode == TextSelectionMode.Box)
@@ -122,45 +171,66 @@ namespace Hally.Alignment.VisualStudio
                         // to the length of spans located before it in the text.
                         foreach (var i in Enumerable.Range(0, lines.Length).Reverse())
                         {
-                            var selectedSpan = selectedSpans[i];
-                            var start = selectedSpan.Span.Start;
-                            var updatedText = updatedLines[i];
-
-                            var updatedSnapshot = textView.TextBuffer.Replace(selectedSpan, updatedLines[i]);
-                            updatedSnapshotSpans[i] = new SnapshotSpan(updatedSnapshot, new Span(start, updatedText.Length));
+                            updatedSnapshotSpans[i] =
+                                new SnapshotSpan(
+                                    textView.TextBuffer.Replace(selectedSpans[i], updatedLines[i]),
+                                    selectedSpans[i].Span.Start,
+                                    updatedLines[i].Length
+                                );
                         }
 
                         // Reselect the original selection, expanded or reduced to the extent of the updated text
-                        textView.SetBoxSelection(updatedSnapshotSpans, isReversed);
+                        textView.SetBoxSelection(updatedSnapshotSpans, lines.IsReversed);
+                    }
+                    else if (selection.IsEmpty)
+                    {
+                        // Remember the original caret position
+                        var originalPosition = textView.Caret.Position.BufferPosition;
+                        var originalLine = originalPosition.GetContainingLine();
+                        var originalOffsetFromStartOfLine = originalPosition - originalLine.Start.Position;
+
+                        // Get the span to replace
+                        var firstLineToReplace = lines.LineIndices[0];
+                        var lastLineToReplace  = lines.LineIndices[lines.LineIndices.Length - 1];
+
+                        var startOfFirstLineToReplace = textView.TextSnapshot.GetLineFromLineNumber(firstLineToReplace).Start;
+                        var endOfLastLineToReplace    = textView.TextSnapshot.GetLineFromLineNumber(lastLineToReplace).End;
+
+                        var spanToReplace = new Span(startOfFirstLineToReplace, endOfLastLineToReplace - startOfFirstLineToReplace + 1);
+
+                        // Update the text
+                        var updatedText = String.Join("\n", updatedLines);
+                        textView.TextBuffer.Replace(spanToReplace, updatedText);
+
+                        // Reset the caret position (approximately) TODO: do this accurately
+                        var updatedLine = textView.TextSnapshot.GetLineFromLineNumber(originalLine.LineNumber);
+                        var updatedPosition = updatedLine.Start.Position + originalOffsetFromStartOfLine;
+                        textView.Caret.MoveTo(new SnapshotPoint(textView.TextSnapshot, updatedPosition));
                     }
                     else
                     {
-                        var selectedSpan = selection.SelectedSpans[0];
-                        var start = selectedSpan.Span.Start;
+                        // Update the text
                         var updatedText = String.Join("\n", updatedLines);
-
+                        var selectedSpan = selection.SelectedSpans[0];
                         var updatedSnapshot = textView.TextBuffer.Replace(selectedSpan, updatedText);
 
-                        // Redo the original selection, expanded or reduced to the extent of the updated text
-                        var updatedSnapshotSpan = new SnapshotSpan(updatedSnapshot, start, updatedText.Length);
-                        textView.Selection.Select(updatedSnapshotSpan, isReversed);
+                        // Reset the selection, expanded or reduced to the extent of the updated text
+                        var updatedSnapshotSpan = new SnapshotSpan(updatedSnapshot, selectedSpan.Span.Start, updatedText.Length);
+                        textView.Selection.Select(updatedSnapshotSpan, lines.IsReversed);
 
-                        // If the original selection had the caret at the start, move it back there now (the text replacement leaves the caret at the end,
-                        // and redoing the selection doesn't affect the caret).
-                        if (isReversed)
+                        // If the original selection had the caret at the start, move it back there now (the text replacement
+                        // seems to always leave the caret at the end, and redoing the selection doesn't affect the caret).
+                        if (lines.IsReversed)
                         {
-                            textView.Caret.MoveTo(selection.SelectedSpans[0].Start);
+                            textView.Caret.MoveTo(selectedSpan.Start);
                         }
                     }
                 }
-#if DEBUG
             }
             catch (Exception ex)
             {
-                var log = String.Join("\n", logs);
-                textView.TextBuffer.Insert(textView.Caret.Position.BufferPosition, log + "\n" + ex.ToString());
+                logger.Debug($"ERROR: {ex.Message}\n\n{ex}");
             }
-#endif
         }
     }
 }
