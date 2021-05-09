@@ -136,7 +136,7 @@ let private offsetTokens startIndex targetKind offset (tokens : Token list) =
 
     loop tokens false [] |> List.rev
 
-let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKind[]) (lines : Line[]) already : Line[] =
+let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     match getNextTokenKindToAlignBy shouldAlignLine startIndex alignBy lines with
     | None -> lines
     | Some a ->
@@ -162,7 +162,7 @@ let rec private alignFrom shouldAlignLine (startIndex : int) (alignBy : TokenKin
                         }
             )
 
-        alignFrom shouldAlignLine (a.MaxIndex + 1) alignBy updated (already |> Set.add a.Kind)
+        alignFrom shouldAlignLine (a.MaxIndex + 1) alignBy updated
 
 let private always (_ : Line) = true
 
@@ -176,13 +176,13 @@ let private ifFirstNonWhitespaceTokenIsSameKindAs (target : Line) =
 
 let alignLines (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     if lines.Length > 1 then
-        alignFrom always 0 alignBy lines Set.empty
+        alignFrom always 0 alignBy lines
     else
         lines
 
 let alignToFirstLine (alignBy : TokenKind[]) (lines : Line[]) : Line[] =
     if lines.Length > 1 then
-        alignFrom (ifFirstNonWhitespaceTokenIsSameKindAs lines.[0]) 0 alignBy lines Set.empty
+        alignFrom (ifFirstNonWhitespaceTokenIsSameKindAs lines.[0]) 0 alignBy lines
     else
         lines
 
