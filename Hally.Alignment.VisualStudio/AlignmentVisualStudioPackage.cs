@@ -1,6 +1,8 @@
-﻿using Microsoft.VisualStudio.Shell;
+﻿#nullable enable
+
 using System;
 using System.Runtime.InteropServices;
+using Microsoft.VisualStudio.Shell;
 
 namespace Hally.Alignment.VisualStudio
 {
