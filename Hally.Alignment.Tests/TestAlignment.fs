@@ -410,6 +410,18 @@ let cd : int = efg // In fact, code should be left alone if it's commented out, 
         | OrderRefError   (_, error) -> ClientStatus.LoadingFailed(error).Description
 """
 
+    let [<Literal>] Unaligned23 = """
+        var line = textSnapshot.GetLineFromLineNumber(i);
+        lines[i] = line.GetTextIncludingLineBreak().Trim('\n');
+        offsets[i] = line.Start;
+"""
+
+    let [<Literal>] Realigned23 = """
+        var line   = textSnapshot.GetLineFromLineNumber(i);
+        lines[i]   = line.GetTextIncludingLineBreak().Trim('\n');
+        offsets[i] = line.Start;
+"""
+
 [<TestCase(NoAlignmentRequired.Empty           , NoAlignmentRequired.Empty                   , TestName = "{m}: " + (nameof NoAlignmentRequired     ) + "." + (nameof NoAlignmentRequired.Empty           ))>]
 [<TestCase(NoAlignmentRequired.OneLine         , NoAlignmentRequired.OneLine                 , TestName = "{m}: " + (nameof NoAlignmentRequired     ) + "." + (nameof NoAlignmentRequired.OneLine         ))>]
 [<TestCase(NoAlignmentRequired.WhiteSpaceOnly  , NoAlignmentRequired.WhiteSpaceOnly_Unaligned, TestName = "{m}: " + (nameof NoAlignmentRequired     ) + "." + (nameof NoAlignmentRequired.WhiteSpaceOnly  ))>]
@@ -461,6 +473,12 @@ let ``Alignment.realignAllExtended, always removes excess whitespace and aligns 
 [<TestCase(ComplexAlignmentRequired.Unaligned09, ComplexAlignmentRequired.Realigned09        , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned09))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned10, ComplexAlignmentRequired.Realigned10        , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned10))>]
 [<TestCase(ComplexAlignmentRequired.Unaligned11, ComplexAlignmentRequired.Realigned11_B      , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned11))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned12, ComplexAlignmentRequired.Realigned12        , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned12))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned13, ComplexAlignmentRequired.Realigned13        , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned13))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned15, ComplexAlignmentRequired.Realigned15        , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned15))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned18, ComplexAlignmentRequired.Realigned18        , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned18))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned20, ComplexAlignmentRequired.Realigned20        , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned20))>]
+[<TestCase(ComplexAlignmentRequired.Unaligned23, ComplexAlignmentRequired.Realigned23        , TestName = "{m}: " + (nameof ComplexAlignmentRequired) + "." + (nameof ComplexAlignmentRequired.Unaligned23))>]
 let ``Alignment.realignAll, always removes excess whitespace and aligns by all required token kinds`` (before : string) (after : string) =
     let actual =
         before.Split('\n')

@@ -107,6 +107,7 @@ let private openBrace        : Parser<Tok, unit> = pchar'   '{'      |>> C >> to
 let private closeBrace       : Parser<Tok, unit> = pchar'   '}'      |>> C >> tok CloseBrace
 let private openParenthesis  : Parser<Tok, unit> = pchar'   '('      |>> C >> tok OpenParenthesis
 let private closeParenthesis : Parser<Tok, unit> = pchar'   ')'      |>> C >> tok CloseParenthesis
+let private fluentApiCall    : Parser<Tok, unit> = pstring' "()."    |>> S >> tok FluentApiCall
 let private forwardPipe      : Parser<Tok, unit> = pstring' "|>"     |>> S >> tok ForwardPipe
 let private backwardPipe     : Parser<Tok, unit> = pstring' "<|"     |>> S >> tok BackwardPipe
 let private forwardArrow     : Parser<Tok, unit> = pstring' "->"     |>> S >> tok ForwardArrow
@@ -134,6 +135,7 @@ let private anyToken =
     <|> type'
     <|> openBrace
     <|> closeBrace
+    <|> fluentApiCall
     <|> openParenthesis
     <|> closeParenthesis
     <|> forwardPipe

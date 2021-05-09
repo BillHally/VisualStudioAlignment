@@ -12,6 +12,7 @@ type TokenKind =
     | CloseBrace
     | OpenParenthesis
     | CloseParenthesis
+    | FluentApiCall
     | ForwardPipe
     | BackwardPipe
     | ForwardArrow
@@ -71,13 +72,11 @@ module TokenKind =
         With
         Member
         Colon
-        SemiColon
         Comma
         Equals
         OpenBrace
         CloseBrace
         OpenParenthesis
-        CloseParenthesis
         ForwardPipe
         BackwardPipe
         ForwardArrow
@@ -98,6 +97,7 @@ module TokenKind =
         | "}"      -> CloseBrace
         | "("      -> OpenParenthesis
         | ")"      -> CloseParenthesis
+        | ")."     -> FluentApiCall
         | "|>"     -> ForwardPipe
         | "<|"     -> BackwardPipe
         | "->"     -> ForwardArrow
