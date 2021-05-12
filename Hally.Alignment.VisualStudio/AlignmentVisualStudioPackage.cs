@@ -38,9 +38,9 @@ namespace Hally.Alignment.VisualStudio
 
         private static readonly Guid OutputPaneGuid = new Guid("16D33126-2DB6-4CF7-9325-52CDD553FC94");
         private const string PaneTitle = "Line alignment";
-        private static IVsOutputWindowPane outputPane;
+        private static IVsOutputWindowPane? outputPane;
 
-        private static IVsOutputWindowPane CreatePane(IServiceProvider services, Guid paneGuid, string title, bool visible, bool clearWithSolution)
+        private static IVsOutputWindowPane? CreatePane(IServiceProvider services, Guid paneGuid, string title, bool visible, bool clearWithSolution)
         {
             ThreadHelper.ThrowIfNotOnUIThread();
 
@@ -71,7 +71,7 @@ namespace Hally.Alignment.VisualStudio
                 AlignmentVisualStudioPackage.outputPane = CreatePane(services, OutputPaneGuid, PaneTitle, true, true);
             }
 
-            AlignmentVisualStudioPackage.outputPane.OutputString(message);
+            AlignmentVisualStudioPackage.outputPane?.OutputString(message);
         }
     }
 }

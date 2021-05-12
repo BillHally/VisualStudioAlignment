@@ -46,10 +46,11 @@ namespace Hally.Alignment.VisualStudio
         private const int RealignToFirstLineExtendedId = 0x2160;
         private const int UnalignId                    = 0x2170;
 
-#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         // Command bindings: these look unused - because no code references them - but they're responsible for connecting the IDs
         // above (which must match the values in the .vsct file) to the specific .*Args class, and so to the specific .*CommandHandler
         // type (there's one for each .*Args type).
+        #pragma warning disable CS0649 // Field 'field' is never assigned to, and will always have its default value 'value'
+        #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         [Export]
         [CommandBinding(CommandSetValue, AlignId, typeof(AlignArgs))]
         internal CommandBindingDefinition alignBinding;
@@ -77,7 +78,8 @@ namespace Hally.Alignment.VisualStudio
         [Export]
         [CommandBinding(CommandSetValue, UnalignId, typeof(UnalignArgs))]
         internal CommandBindingDefinition unalignBinding;
-#pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+        #pragma warning restore CS0649 // Field 'field' is never assigned to, and will always have its default value 'value'
     }
 
     public interface ILogger
@@ -94,11 +96,11 @@ namespace Hally.Alignment.VisualStudio
             this.align = align;
         }
 
-        [Import]
-        private IEditorOperationsFactoryService EditorOperations = null;
-
-        [Import]
-        private SVsServiceProvider ServiceProvider = null;
+        // The imports will be set when the package is loaded, by MEF
+        #pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+        [Import] private IEditorOperationsFactoryService EditorOperations = null;
+        [Import] private SVsServiceProvider              ServiceProvider  = null;
+        #pragma warning restore CS8625 // Cannot convert null literal to non-nullable reference type.
 
         private readonly Func<string[], string[]> align;
 
@@ -121,6 +123,7 @@ namespace Hally.Alignment.VisualStudio
 
         public void Debug(string message)
         {
+            Microsoft.VisualStudio.Shell.ThreadHelper.ThrowIfNotOnUIThread();
             AlignmentVisualStudioPackage.WriteToOutputPane(ServiceProvider, message + "\n");
         }
     }
