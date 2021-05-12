@@ -131,9 +131,14 @@ module Line =
 
     /// Gets the next index for the given token kind.
     ///
-    /// However, if aligning either Comma or Other, we don't want to align to tokens on different sides of a token
-    /// which is neither - so only consider tokens which have not been preceded by something else, except for
-    /// an open parenthesis, which we'll treat specially.
+    /// However, there are some rules specific to particular kinds of token:
+    ///
+    /// 1. If aligning either Comma or Other, we don't want to align to tokens on different sides of a token
+    ///    which is neither - so only consider tokens which have not been preceded by something else, except for
+    ///    an open parenthesis, which we'll treat specially.
+    ///
+    /// 2. "Fluent API" calls are never aligned (this is handled by excluding those tokens from the list of token
+    ///    kinds which act as alignment targets)
     ///
     /// TODO: also treat the start of an array or list literal specially?
     let getNextIndex (startIndex : int) (line : Line) tk : int =
